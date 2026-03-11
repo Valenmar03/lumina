@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getProfessionalSchedules,
-  updateProfessionalSchedules,
+  updateProfessionalScheduleForDay,
+  updateProfessionalServices,
 } from "../services/professionals.api";
-import type { UpdateProfessionalSchedulesPayload } from "../types/entities";
 
 const EMPTY_SCHEDULES = {
   0: [],
@@ -27,9 +27,16 @@ export function useProfessionalSchedule(professionalId?: string) {
     enabled: !!professionalId,
   });
 
-  const updateMutation = useMutation({
-    mutationFn: (payload: UpdateProfessionalSchedulesPayload) =>
-      updateProfessionalSchedules(professionalId!, payload),
+  const updateDayMutation = useMutation({
+    mutationFn: (params: {
+      dayOfWeek: number;
+      blocks: { startTime: string; endTime: string }[];
+    }) =>
+      updateProfessionalScheduleForDay({
+        professionalId: professionalId!,
+        dayOfWeek: params.dayOfWeek,
+        blocks: params.blocks,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["professional-schedule", professionalId],
@@ -40,9 +47,27 @@ export function useProfessionalSchedule(professionalId?: string) {
   return {
     ...query,
     schedules: query.data?.schedules ?? EMPTY_SCHEDULES,
-    updateSchedule: updateMutation.mutate,
-    updateScheduleAsync: updateMutation.mutateAsync,
-    isUpdating: updateMutation.isPending,
-    updateError: updateMutation.error,
+    updateScheduleForDay: updateDayMutation.mutate,
+    updateScheduleForDayAsync: updateDayMutation.mutateAsync,
+    isUpdating: updateDayMutation.isPending,
+    updateError: updateDayMutation.error,
   };
 }
+
+export function useUpdateProfessionalServices() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+      mutationFn: (params: { professionalId: string; serviceIds: string[] }) =>
+        updateProfessionalServices(params),
+      onSuccess: (_, variables) => {
+        queryClient.invalidateQueries({
+          queryKey: ["professional-services", variables.professionalId],
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: ["professionals"],
+        });
+      },
+    });
+  }

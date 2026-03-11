@@ -47,3 +47,34 @@ export function updateProfessionalSchedules(
     }
   );
 }
+
+export function updateProfessionalScheduleForDay(params: {
+  professionalId: string;
+  dayOfWeek: number;
+  blocks: { startTime: string; endTime: string }[];
+}) {
+  return apiFetch(
+    `/professionals/${params.professionalId}/schedules/${params.dayOfWeek}`,
+    {
+      method: "PUT",
+      body: JSON.stringify({
+        blocks: params.blocks,
+      }),
+    }
+  );
+}
+
+export function updateProfessionalServices(params: {
+  professionalId: string;
+  serviceIds: string[];
+}) {
+  return apiFetch<ProfessionalServicesResponse>(
+    `/professionals/${params.professionalId}/services`,
+    {
+      method: "PUT",
+      body: JSON.stringify({
+        serviceIds: params.serviceIds,
+      }),
+    }
+  );
+}

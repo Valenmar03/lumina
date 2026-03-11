@@ -83,13 +83,13 @@ export async function replaceProfessionalScheduleForDayHandler(
       return res.status(400).json({ error: "blocks must be an array" });
     }
 
-    const result = await professionalService.replaceScheduleForDay({
+    const schedules = await professionalService.replaceScheduleForDay({
       professionalId: String(id),
       dayOfWeek: Number(dayOfWeek),
       blocks,
     });
 
-    return res.json({ result });
+    return res.json({ schedules });
   } catch (err: any) {
     return res.status(err?.status ?? 500).json({
       error: err?.message ?? "Server error",
@@ -128,12 +128,12 @@ export async function replaceProfessionalServicesHandler(
       return res.status(400).json({ error: "serviceIds must be an array" });
     }
 
-    const result = await professionalService.replaceProfessionalServices({
+    const services = await professionalService.replaceProfessionalServices({
       professionalId: String(id),
       serviceIds,
     });
 
-    return res.json({ result });
+    return res.json({ services });
   } catch (err: any) {
     return res.status(err?.status ?? 500).json({
       error: err?.message ?? "Server error",

@@ -121,30 +121,39 @@ export class ProfessionalService {
         professionalId: string;
         dayOfWeek: number;
         blocks: { startTime: string; endTime: string }[];
-        }) {
-        const { professionalId, dayOfWeek, blocks } = params;
+      }) {
+      const { professionalId, dayOfWeek, blocks } = params;
 
-        validateScheduleBlocks(blocks);
+      validateScheduleBlocks(blocks);
 
-        await prisma.professionalSchedule.deleteMany({
-            where: {
-            businessId: BUSINESS_ID,
-            professionalId,
-            dayOfWeek,
-            },
-        });
+      await prisma.professionalSchedule.deleteMany({
+        where: {
+          businessId: BUSINESS_ID,
+          professionalId,
+          dayOfWeek,
+        },
+      });
 
-        if (blocks.length === 0) return [];
+      if (blocks.length === 0) return [];
 
-        return prisma.professionalSchedule.createMany({
-            data: blocks.map((b) => ({
-            businessId: BUSINESS_ID,
-            professionalId,
-            dayOfWeek,
-            startTime: b.startTime,
-            endTime: b.endTime,
-            })),
-        });
+      await prisma.professionalSchedule.createMany({
+        data: blocks.map((b) => ({
+          businessId: BUSINESS_ID,
+          professionalId,
+          dayOfWeek,
+          startTime: b.startTime,
+          endTime: b.endTime,
+        })),
+      });
+
+      return prisma.professionalSchedule.findMany({
+        where: {
+          businessId: BUSINESS_ID,
+          professionalId,
+          dayOfWeek,
+        },
+        orderBy: [{ startTime: "asc" }],
+      });
     }
 
   async getProfessionalServices(params: { professionalId: string }) {
@@ -209,14 +218,27 @@ export class ProfessionalService {
       },
     });
 
-    if (serviceIds.length === 0) return [];
+    if (serviceIds.length > 0) {
+      await prisma.professionalService.createMany({
+        data: serviceIds.map((serviceId) => ({
+          businessId: BUSINESS_ID,
+          professionalId,
+          serviceId,
+        })),
+      });
+    }
 
-    return prisma.professionalService.createMany({
-      data: serviceIds.map((serviceId) => ({
+    return prisma.professionalService.findMany({
+      where: {
         businessId: BUSINESS_ID,
         professionalId,
-        serviceId,
-      })),
+      },
+      include: {
+        service: true,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
     });
   }
 

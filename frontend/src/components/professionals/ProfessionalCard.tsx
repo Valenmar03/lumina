@@ -13,6 +13,8 @@ export default function ProfessionalCard({ professional }: Props) {
   const visibleServices = serviceNames.slice(0, 3);
   const extraServices = serviceNames.length - visibleServices.length;
 
+  const servicesCount = services.length;
+
   return (
     <div className="bg-white rounded-xl border border-slate-200/80 p-5 hover:shadow-sm transition-all cursor-pointer">
       <div className="flex items-start gap-3.5">
@@ -48,14 +50,20 @@ export default function ProfessionalCard({ professional }: Props) {
               </span>
             )}
 
-            {!isLoading && visibleServices.map((name: string) => (
-              <span
-                key={name}
-                className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md"
-              >
-                {name}
-              </span>
-            ))}
+            {!isLoading && (
+              servicesCount === 0 ? (
+                <p className="text-xs text-slate-400 px-2 py-0.5">Sin servicios</p>
+              ) : (
+                visibleServices.map((name: string) => (
+                  <span
+                    key={name}
+                    className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md"
+                  >
+                    {name}
+                  </span>
+                ))
+              )
+            )}
 
             {!isLoading && extraServices > 0 && (
               <span className="text-xs text-slate-400">
@@ -78,7 +86,7 @@ export default function ProfessionalCard({ professional }: Props) {
         </div>
 
         <span className="text-xs text-slate-400">
-          {isLoading ? "..." : `${services.length} servicios`}
+          {isLoading ? "..." : `${servicesCount} servicios`}
         </span>
       </div>
     </div>

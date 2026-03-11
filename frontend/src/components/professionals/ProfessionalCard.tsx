@@ -132,7 +132,7 @@ export default function ProfessionalCard({ professional, onClick }: Props) {
             </div>
 
             <div className="mt-2 flex items-start gap-1.5 text-xs text-slate-500 min-h-4">
-              <Clock3 className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-[1px]" />
+              <Clock3 className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-px" />
 
               {loadingProfessionalSchedule ? (
                 <span>Cargando horarios...</span>

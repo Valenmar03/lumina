@@ -1,5 +1,5 @@
 import { apiFetch } from "./api";
-import type { Professional } from "../types/entities";
+import type { Professional, ProfessionalSchedulesResponse, UpdateProfessionalSchedulesPayload } from "../types/entities";
 import type { AvailabilityResponse, ProfessionalServicesResponse } from "../types/entities";
 
 export function getProfessionals() {
@@ -26,5 +26,24 @@ export function getProfessionalAvailability(params: {
 export function getProfessionalServices(params: { professionalId: string }) {
   return apiFetch<ProfessionalServicesResponse>(
     `/professionals/${params.professionalId}/services`
+  );
+}
+
+export function getProfessionalSchedules(params: { professionalId: string }) {
+  return apiFetch<ProfessionalSchedulesResponse>(
+    `/professionals/${params.professionalId}/schedules`
+  );
+}
+
+export function updateProfessionalSchedules(
+  professionalId: string,
+  body: UpdateProfessionalSchedulesPayload
+) {
+  return apiFetch<ProfessionalSchedulesResponse>(
+    `/professionals/${professionalId}/schedules`,
+    {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }
   );
 }

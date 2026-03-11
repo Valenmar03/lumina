@@ -115,3 +115,25 @@ export type WeeklyAgendaResponse = {
   scheduleBlocksByProfessional?: Record<string, ScheduleBlock[]>;
   appointments: AgendaAppointment[];
 };
+
+export type ProfessionalScheduleBlock = {
+  id: string;
+  businessId: string;
+  professionalId: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  createdAt: string;
+};
+
+export type ProfessionalSchedulesResponse = {
+  schedules: Record<number, ProfessionalScheduleBlock[]>;
+};
+
+export type UpdateProfessionalSchedulesPayload = {
+  schedules: Array<{
+    dayOfWeek: number;
+    startTime: string;
+    endTime: string;
+  }>;
+};

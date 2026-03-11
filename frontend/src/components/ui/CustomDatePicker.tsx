@@ -67,7 +67,14 @@ export default function CustomDatePicker({
 }: Props) {
   const [open, setOpen] = useState(false);
   const [openUpwards, setOpenUpwards] = useState(false);
+  const [popoverPosition, setPopoverPosition] = useState({
+    top: 0,
+    left: 0,
+    width: 320,
+  });
+
   const boxRef = useRef<HTMLDivElement | null>(null);
+  const popoverRef = useRef<HTMLDivElement | null>(null);
 
   const colors = colorConfig[color];
 
@@ -107,20 +114,43 @@ export default function CustomDatePicker({
 
     const rect = box.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
 
-    const estimatedPopoverHeight = 380;
+    const popoverHeight = 380;
+    const popoverWidth = 320;
+    const gap = 8;
+
     const spaceBelow = viewportHeight - rect.bottom;
     const spaceAbove = rect.top;
 
-    setOpenUpwards(
-      spaceBelow < estimatedPopoverHeight && spaceAbove > spaceBelow
-    );
+    const shouldOpenUpwards =
+      spaceBelow < popoverHeight && spaceAbove > spaceBelow;
+
+    setOpenUpwards(shouldOpenUpwards);
+
+    const top = shouldOpenUpwards
+      ? Math.max(8, rect.top - popoverHeight - gap)
+      : Math.min(viewportHeight - popoverHeight - 8, rect.bottom + gap);
+
+    const maxWidth = Math.min(popoverWidth, viewportWidth - 32);
+
+    const left = Math.min(rect.left, viewportWidth - maxWidth - 8);
+
+    setPopoverPosition({
+      top,
+      left: Math.max(8, left),
+      width: maxWidth,
+    });
   };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (!boxRef.current) return;
-      if (!boxRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+
+      const clickedInsideBox = boxRef.current?.contains(target);
+      const clickedInsidePopover = popoverRef.current?.contains(target);
+
+      if (!clickedInsideBox && !clickedInsidePopover) {
         setOpen(false);
       }
     };
@@ -199,81 +229,85 @@ export default function CustomDatePicker({
 
         {open && (
           <div
-            className={`absolute left-0 z-40 w-[320px] max-w-[calc(100vw-32px)] rounded-2xl border border-slate-200 bg-white p-3 shadow-xl ${
-              openUpwards ? "bottom-full mb-2" : "top-full mt-2"
-            }`}
+            ref={popoverRef}
+            className="fixed z-200 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl"
+            style={{
+              top: popoverPosition.top,
+              left: popoverPosition.left,
+              width: popoverPosition.width,
+            }}
           >
             <DayPicker
-                mode="single"
-                locale={es}
-                selected={selectedDate}
-                month={visibleMonth}
-                onMonthChange={setVisibleMonth}
-                onSelect={(date) => {
-                    if (!date) return;
-                    onChange(format(date, "yyyy-MM-dd"));
-                    setVisibleMonth(date);
-                    setOpen(false);
-                }}
-                showOutsideDays
-                fixedWeeks
-                weekStartsOn={1}
-                classNames={{
-                    root: "w-full",
-                    months: "flex flex-col",
-                    month: "space-y-3",
-                    caption:
-                    "flex items-center justify-between px-1 pt-1 mb-2 text-slate-900",
-                    caption_label: "text-sm font-semibold capitalize",
-                    nav: "flex items-center gap-1",
-                    button_previous:
-                    "inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50",
-                    button_next:
-                    "inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50",
-                    month_grid: "w-full border-collapse",
-                    weekdays: "flex mb-1",
-                    weekday:
-                    "w-10 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-400",
-                    week: "mt-1 flex w-full",
-                    day: "h-10 w-10 p-0 text-center",
-                    day_button:
-                    "h-10 w-10 rounded-xl text-sm font-medium text-slate-700 transition-all outline-none hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-offset-2",
-                    selected: "",
-                    today: "",
-                    outside: "",
-                    disabled: "text-slate-300 opacity-50",
-                    hidden: "invisible",
-                }}
-                styles={{
-                    day_button: {
-                    border: "none",
-                    },
-                }}
-                modifiersStyles={{
-                    selected: {
-                    backgroundColor: colors.selectedBg,
-                    color: colors.selectedText,
-                    borderRadius: "0.75rem",
-                    },
-                    today: {
-                    border: `1px solid ${colors.todayBorder}`,
-                    color: colors.todayText,
-                    borderRadius: "0.75rem",
-                    },
-                    outside: {
-                        color: "#cbd5e1",
-                        opacity: 0.5,
-                        backgroundColor: "transparent",
-                    },
-                }}
-                components={{
-                    Chevron: ({ orientation, className }) =>
-                    orientation === "left" ? (
-                        <ChevronLeft className={className ?? "h-4 w-4"} />
-                    ) : (
-                        <ChevronRight className={className ?? "h-4 w-4"} />
-                    ),
-                }}
+              mode="single"
+              locale={es}
+              selected={selectedDate}
+              month={visibleMonth}
+              onMonthChange={setVisibleMonth}
+              onSelect={(date) => {
+                if (!date) return;
+                onChange(format(date, "yyyy-MM-dd"));
+                setVisibleMonth(date);
+                setOpen(false);
+              }}
+              showOutsideDays
+              fixedWeeks
+              weekStartsOn={1}
+              classNames={{
+                root: "w-full",
+                months: "flex flex-col",
+                month: "space-y-3",
+                caption:
+                  "flex items-center justify-between px-1 pt-1 mb-2 text-slate-900",
+                caption_label: "text-sm font-semibold capitalize",
+                nav: "flex items-center gap-1",
+                button_previous:
+                  "inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50",
+                button_next:
+                  "inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50",
+                month_grid: "w-full border-collapse",
+                weekdays: "flex mb-1",
+                weekday:
+                  "w-10 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-400",
+                week: "mt-1 flex w-full",
+                day: "h-10 w-10 p-0 text-center",
+                day_button:
+                  "h-10 w-10 rounded-xl text-sm font-medium text-slate-700 transition-all outline-none hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-offset-2",
+                selected: "",
+                today: "",
+                outside: "",
+                disabled: "text-slate-300 opacity-50",
+                hidden: "invisible",
+              }}
+              styles={{
+                day_button: {
+                  border: "none",
+                },
+              }}
+              modifiersStyles={{
+                selected: {
+                  backgroundColor: colors.selectedBg,
+                  color: colors.selectedText,
+                  borderRadius: "0.75rem",
+                },
+                today: {
+                  border: `1px solid ${colors.todayBorder}`,
+                  color: colors.todayText,
+                  borderRadius: "0.75rem",
+                },
+                outside: {
+                  color: "#cbd5e1",
+                  opacity: 0.5,
+                  backgroundColor: "transparent",
+                },
+              }}
+              components={{
+                Chevron: ({ orientation, className }) =>
+                  orientation === "left" ? (
+                    <ChevronLeft className={className ?? "h-4 w-4"} />
+                  ) : (
+                    <ChevronRight className={className ?? "h-4 w-4"} />
+                  ),
+              }}
             />
 
             <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
@@ -293,7 +327,10 @@ export default function CustomDatePicker({
               {value && (
                 <button
                   type="button"
-                  onClick={() => onChange("")}
+                  onClick={() => {
+                    onChange("");
+                    setOpen(false);
+                  }}
                   className="text-xs font-medium text-slate-500 transition-colors hover:text-slate-700"
                 >
                   Limpiar
@@ -306,42 +343,42 @@ export default function CustomDatePicker({
 
       {open && (
         <style>{`
-            .rdp-root button[aria-selected="true"] {
-                background: ${colors.selectedBg} !important;
-                color: ${colors.selectedText} !important;
-            }
+          .rdp-root button[aria-selected="true"] {
+            background: ${colors.selectedBg} !important;
+            color: ${colors.selectedText} !important;
+          }
 
-            .rdp-root button[aria-selected="true"]:hover {
-                background: ${colors.selectedHoverBg} !important;
-            }
+          .rdp-root button[aria-selected="true"]:hover {
+            background: ${colors.selectedHoverBg} !important;
+          }
 
-            .rdp-root .rdp-day_button:hover {
-                background: ${colors.hoverBg};
-                color: ${colors.hoverText};
-            }
+          .rdp-root .rdp-day_button:hover {
+            background: ${colors.hoverBg};
+            color: ${colors.hoverText};
+          }
 
-            .rdp-root .rdp-today:not(.rdp-selected) button {
-                border: 1px solid ${colors.todayBorder};
-                color: ${colors.todayText};
-            }
+          .rdp-root .rdp-today:not(.rdp-selected) button {
+            border: 1px solid ${colors.todayBorder};
+            color: ${colors.todayText};
+          }
 
-            .rdp-root .rdp-outside {
-                color: #cbd5e1 !important;
-                opacity: 1 !important;
-            }
+          .rdp-root .rdp-outside {
+            color: #cbd5e1 !important;
+            opacity: 1 !important;
+          }
 
-            .rdp-root .rdp-outside button,
-            .rdp-root button.rdp-outside {
-                color: #cbd5e1 !important;
-                background: transparent !important;
-            }
+          .rdp-root .rdp-outside button,
+          .rdp-root button.rdp-outside {
+            color: #cbd5e1 !important;
+            background: transparent !important;
+          }
 
-            .rdp-root .rdp-outside button:hover,
-            .rdp-root button.rdp-outside:hover {
-                color: #cbd5e1 !important;
-                background: transparent !important;
-            }
-            `}</style>
+          .rdp-root .rdp-outside button:hover,
+          .rdp-root button.rdp-outside:hover {
+            color: #cbd5e1 !important;
+            background: transparent !important;
+          }
+        `}</style>
       )}
     </div>
   );

@@ -145,7 +145,6 @@ export class AppointmentService {
       throw badRequest("Invalid date range");
     }
 
-    // [gte, lt) es lo más prolijo para rangos
     const appointments = await prisma.appointment.findMany({
       where: {
         businessId: BUSINESS_ID,
@@ -167,7 +166,16 @@ export class AppointmentService {
       orderBy: { startAt: "asc" },
     });
 
-    return appointments;
+    return appointments.map((appt) => {
+      const isPendingResolution =
+        appt.status === "CONFIRMED" &&
+        appt.endAt.getTime() < Date.now();
+
+      return {
+        ...appt,
+        isPendingResolution,
+      };
+    });
   }
 
   async changeStatus(params: {

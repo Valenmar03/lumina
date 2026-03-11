@@ -45,7 +45,9 @@ function getStatusLabel(status?: AppointmentStatus | string) {
     case "NO_SHOW":
       return "No asistió";
     case "COMPLETED":
-      return "Completado";
+      return "Realizado";
+    case "PENDING_RESOLUTION":
+        return "Pendiente";
     default:
       return "Sin estado";
   }
@@ -54,13 +56,15 @@ function getStatusLabel(status?: AppointmentStatus | string) {
 function getStatusBadgeClasses(status?: AppointmentStatus | string) {
   switch (status) {
     case "CONFIRMED":
-      return "border-teal-200 bg-teal-50 text-teal-700";
+      return "border-cyan-200 bg-cyan-50 text-cyan-700";
     case "CANCELED":
       return "border-red-200 bg-red-50 text-red-700";
     case "NO_SHOW":
       return "border-amber-200 bg-amber-50 text-amber-700";
     case "COMPLETED":
       return "border-emerald-200 bg-emerald-50 text-emerald-700";
+    case "PENDING_RESOLUTION":
+        return "border-violet-200 bg-violet-50 text-violet-700";
     default:
       return "border-slate-200 bg-slate-50 text-slate-700";
   }
@@ -76,6 +80,8 @@ function getStatusIcon(status?: AppointmentStatus | string) {
       return <UserX2 className="h-3.5 w-3.5" />;
     case "COMPLETED":
       return <CheckCircle2 className="h-3.5 w-3.5" />;
+    case "PENDING_RESOLUTION":
+        return <AlertCircle className="h-3.5 w-3.5" />;
     default:
       return <AlertCircle className="h-3.5 w-3.5" />;
   }
@@ -99,10 +105,14 @@ export default function AppointmentDetailModal({
 
   const clientBoxRef = useRef<HTMLDivElement | null>(null);
 
-  const currentStatus = appointment?.status as AppointmentStatus | undefined;
-  const isCanceled = currentStatus === "CANCELED";
-  const isCompleted = currentStatus === "COMPLETED";
-  const isLocked = isCanceled || isCompleted;
+    const effectiveStatus = appointment?.isPendingResolution
+    ? "PENDING_RESOLUTION"
+    : appointment?.status;
+
+    const currentStatus = appointment?.status as AppointmentStatus | undefined;
+    const isCanceled = currentStatus === "CANCELED";
+    const isCompleted = currentStatus === "COMPLETED";
+    const isLocked = isCanceled || isCompleted;
 
   const { data: clientsData, isLoading: clientsLoading } = useClients(clientSearch);
   const { data: professionalsData, isLoading: professionalsLoading } = useProfessionals();
@@ -314,9 +324,9 @@ export default function AppointmentDetailModal({
     [professionalServices]
   );
 
-  const currentStatusLabel = getStatusLabel(currentStatus);
-  const currentStatusBadgeClasses = getStatusBadgeClasses(currentStatus);
-  const currentStatusIcon = getStatusIcon(currentStatus);
+    const currentStatusLabel = getStatusLabel(effectiveStatus);
+    const currentStatusBadgeClasses = getStatusBadgeClasses(effectiveStatus);
+    const currentStatusIcon = getStatusIcon(effectiveStatus);
 
   return (
     <Modal
@@ -330,7 +340,7 @@ export default function AppointmentDetailModal({
           <div className="flex flex-wrap gap-2">
             {!isCanceled && (
               <Button
-                variant="secondary"
+                variant="border border-red-200 bg-red-100 text-red-600 hover:bg-red-200"
                 onClick={() => handleChangeStatus("CANCELED")}
                 disabled={!appointment?.id || isBusy}
               >
@@ -339,9 +349,9 @@ export default function AppointmentDetailModal({
               </Button>
             )}
 
-            {!isCompleted && !isCanceled && (
+            {currentStatus !== "NO_SHOW" && !isCompleted && !isCanceled && (
               <Button
-                variant="secondary"
+                variant="border border-amber-200 bg-amber-100 text-amber-700 hover:bg-amber-200"
                 onClick={() => handleChangeStatus("NO_SHOW")}
                 disabled={!appointment?.id || isBusy}
               >
@@ -352,18 +362,18 @@ export default function AppointmentDetailModal({
 
             {!isCompleted && !isCanceled && (
               <Button
-                variant="secondary"
+                variant="border border-emerald-200 bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
                 onClick={() => handleChangeStatus("COMPLETED")}
                 disabled={!appointment?.id || isBusy}
               >
                 <CheckCircle2 className="mr-2 h-4 w-4" />
-                Completar
+                Realizado
               </Button>
             )}
 
-            {currentStatus !== "CONFIRMED" && !isCompleted && !isCanceled && (
+            {effectiveStatus !== "CONFIRMED" && !isCompleted && !isCanceled && (
               <Button
-                variant="secondary"
+                variant="border border-cyan-200 bg-cyan-100 text-cyan-700 hover:bg-cyan-200"
                 onClick={() => handleChangeStatus("CONFIRMED")}
                 disabled={!appointment?.id || isBusy}
               >

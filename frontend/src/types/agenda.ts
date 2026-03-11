@@ -25,6 +25,7 @@ export type AgendaAppointment = {
   startAt: string;
   endAt: string;
   status?: string;
+  isPendingResolution?: boolean;
 };
 
 export type ScheduleBlock = {

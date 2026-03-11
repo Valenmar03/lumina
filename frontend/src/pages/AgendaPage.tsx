@@ -116,20 +116,18 @@ export default function AgendaPage() {
       date: Date,
       time: string,
       professionalId?: string,
-   ) => {
-      if (selectedProfessionalId === "all" && !professionalId) return;
-
+    ) => {
       setPrefillSlot({
-         date: format(date, "yyyy-MM-dd"),
-         time,
+        date: format(date, "yyyy-MM-dd"),
+        time,
       });
 
-      if (selectedProfessionalId !== "all" && professionalId) {
-         setSelectedProfessionalId(professionalId);
+      if (professionalId) {
+        setSelectedProfessionalId(professionalId);
       }
 
       setShowNewAppointmentModal(true);
-   };
+    };
 
    const handleAppointmentClick = (appointment: AgendaAppointment) => {
       console.log("Editar/ver turno", appointment);
@@ -254,6 +252,7 @@ export default function AgendaPage() {
                       selectedProfessionalId={selectedProfessionalId}
                       selectedProfessional={selectedProfessional}
                       professionals={professionals}
+                      setSelectedProfessionalId={setSelectedProfessionalId}
                       handleSlotClick={handleSlotClick}
                       handleAppointmentClick={handleAppointmentClick}
                     />

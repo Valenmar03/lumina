@@ -35,6 +35,7 @@ export default function NewAppointmentModal({
   const [selectedProfessionalId, setSelectedProfessionalId] = useState("");
   const [serviceId, setServiceId] = useState("");
   const [selectedStartAt, setSelectedStartAt] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState("");
 
   const clientBoxRef = useRef<HTMLDivElement | null>(null);
 
@@ -48,7 +49,7 @@ export default function NewAppointmentModal({
 
   const { data: availabilityData, isLoading: availabilityLoading } = useAvailability(
     selectedProfessionalId,
-    date,
+    selectedDate,
     serviceId
   );
 
@@ -60,14 +61,16 @@ export default function NewAppointmentModal({
       setSelectedProfessionalId("");
       setServiceId("");
       setSelectedStartAt("");
+      setSelectedDate("");
       return;
     }
 
     setSelectedProfessionalId(professionalId ?? "");
     setServiceId("");
+    setSelectedDate(date ?? format(new Date(), "yyyy-MM-dd"));
 
     if (date && time && professionalId) {
-      const localIso = `${date}T${time}:00-03:00`;
+      const localIso = `${date}T${time}:00:00-03:00`;
       setSelectedStartAt(localIso);
     } else {
       setSelectedStartAt("");
@@ -184,9 +187,19 @@ export default function NewAppointmentModal({
     setServiceId("");
     setSelectedStartAt("");
 
-    if (!date || !time) return;
+    if (!selectedDate || !time) return;
 
-    const localIso = `${date}T${time}:00-03:00`;
+    const localIso = `${selectedDate}T${time}:00:00-03:00`;
+    setSelectedStartAt(localIso);
+  };
+
+  const handleDateChange = (nextDate: string) => {
+    setSelectedDate(nextDate);
+    setSelectedStartAt("");
+
+    if (!nextDate || !time || !selectedProfessionalId) return;
+
+    const localIso = `${nextDate}T${time}:00:00-03:00`;
     setSelectedStartAt(localIso);
   };
 
@@ -380,11 +393,26 @@ export default function NewAppointmentModal({
         </div>
 
         <div>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700">
+            Fecha
+          </label>
+
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => handleDateChange(e.target.value)}
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-teal-500"
+          />
+        </div>
+
+        <div>
           <div className="mb-2 flex items-center justify-between">
             <label className="block text-sm font-medium text-slate-700">
               Horarios disponibles
             </label>
-            {date && <span className="text-xs text-slate-500">Fecha: {date}</span>}
+            {selectedDate && (
+              <span className="text-xs text-slate-500">Fecha: {selectedDate}</span>
+            )}
           </div>
 
           {!selectedProfessionalId ? (

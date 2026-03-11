@@ -16,6 +16,7 @@ type Props = {
   weekDays: Date[];
   appointments: AgendaAppointment[];
   HOURS: number[];
+  setSelectedProfessionalId: (value: string) => void;
   selectedProfessionalId: string;
   selectedProfessional: Professional | null;
   professionals: Professional[];
@@ -28,17 +29,19 @@ type Props = {
 };
 
 export default function MobileAgenda({
-  view,
-  setView,
-  currentDate,
-  setCurrentDate,
-  weekDays,
-  appointments,
-  HOURS,
-  selectedProfessionalId,
-  selectedProfessional,
-  handleSlotClick,
-  handleAppointmentClick,
+    view,
+    setView,
+    currentDate,
+    setCurrentDate,
+    weekDays,
+    appointments,
+    HOURS,
+    selectedProfessionalId,
+    selectedProfessional,
+    professionals,
+    setSelectedProfessionalId,
+    handleSlotClick,
+    handleAppointmentClick,
 }: Props) {
   const [selectedWeekDay, setSelectedWeekDay] = useState(currentDate);
 
@@ -113,6 +116,21 @@ export default function MobileAgenda({
               <Plus className="w-4 h-4" />
             </button>
           </div>
+
+            <div>
+                <select
+                    value={selectedProfessionalId}
+                    onChange={(e) => setSelectedProfessionalId(e.target.value)}
+                    className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-teal-500"
+                >
+                    <option value="all">Todos los profesionales</option>
+                    {professionals.map((p) => (
+                    <option key={p.id} value={p.id}>
+                        {p.name}
+                    </option>
+                    ))}
+                </select>
+            </div>
         </div>
 
         {view === "week" && (

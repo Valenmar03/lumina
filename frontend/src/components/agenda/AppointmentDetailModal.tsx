@@ -20,7 +20,7 @@ import Button from "../ui/Button";
 
 import { useClients } from "../../hooks/useClients";
 import { useProfessionals } from "../../hooks/useProfessionals";
-import { useProfessionalServices } from "../../hooks/useProfessionals";
+import { useProfessionalServices } from "../../hooks/useProfessionalServices";
 import { useAvailability } from "../../hooks/useAvailability";
 
 import type { AgendaAppointment } from "../../types/agenda";

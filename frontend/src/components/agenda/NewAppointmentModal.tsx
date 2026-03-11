@@ -9,7 +9,7 @@ import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 import { useClients } from "../../hooks/useClients";
 import { useProfessionals } from "../../hooks/useProfessionals";
-import { useProfessionalServices } from "../../hooks/useProfessionals";
+import { useProfessionalServices } from "../../hooks/useProfessionalServices";
 import { useAvailability } from "../../hooks/useAvailability";
 import { createAppointment } from "../../services/appointments.api";
 

@@ -142,6 +142,7 @@ export default function ProfessionalDetailModal({
   ).flat();
 
   const [name, setName] = useState("");
+  const [nameError, setNameError] = useState<string | null>(null);
   const [color, setColor] = useState("#0D9488");
   const [active, setActive] = useState(true);
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
@@ -286,12 +287,22 @@ export default function ProfessionalDetailModal({
 
   const handleSave = async () => {
     if (!professional) return;
+
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      setNameError("El nombre del profesional es obligatorio");
+      return;
+    }
+
+    setNameError(null);
+
     if (hasScheduleErrors) return;
 
     try {
       await updateProfessionalMutation.mutateAsync({
         professionalId: professional.id,
-        name,
+        name: trimmedName,
         color,
         active,
       });
@@ -333,6 +344,8 @@ export default function ProfessionalDetailModal({
     }
   };
 
+  const nameInvalid = !name.trim();
+
   return (
     <Modal
       open={open}
@@ -347,7 +360,13 @@ export default function ProfessionalDetailModal({
           </Button>
           <Button
             onClick={handleSave}
-            disabled={!professional || isLoading || isSaving || hasScheduleErrors}
+            disabled={
+              !professional ||
+              isLoading ||
+              isSaving ||
+              hasScheduleErrors ||
+              nameInvalid
+            }
           >
             {isSaving ? "Guardando..." : "Guardar cambios"}
           </Button>
@@ -376,9 +395,24 @@ export default function ProfessionalDetailModal({
                   </label>
                   <input
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-teal-500"
+                    onChange={(e) => {
+                      setName(e.target.value);
+
+                      if (e.target.value.trim()) {
+                        setNameError(null);
+                      }
+                    }}
+                    className={`h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2 ${
+                      nameError
+                        ? "border-red-300 focus:ring-red-500"
+                        : "border-slate-200 focus:ring-teal-500"
+                    }`}
                   />
+                  {nameError && (
+                    <p className="text-xs text-red-600 mt-1">
+                      {nameError}
+                    </p>
+                  )}
                 </div>
 
                 <div className="sm:min-w-40">

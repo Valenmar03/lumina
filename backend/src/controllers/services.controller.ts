@@ -18,6 +18,23 @@ export async function getServicesHandler(req: Request, res: Response) {
   }
 }
 
+export async function getServicesWithProfessionalHandler(req: Request, res: Response) {
+  try {
+    const { search, activeOnly } = req.query;
+
+    const services = await serviceService.listServicesWithProfessional({
+      search: search ? String(search) : undefined,
+      activeOnly: activeOnly ? String(activeOnly) !== "false" : true,
+    });
+
+    return res.json({ services });
+  } catch (err: any) {
+    return res.status(err?.status ?? 500).json({
+      error: err?.message ?? "Server error",
+    });
+  }
+}
+
 export async function getServiceByIdHandler(req: Request, res: Response) {
   try {
     const { id } = req.params;

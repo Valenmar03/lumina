@@ -3,13 +3,19 @@ import { es } from "date-fns/locale";
 import { Plus, Search } from "lucide-react";
 import Button from "../components/ui/Button";
 import { useState } from "react";
+import { useServicesWithProfessionals } from "../hooks/useServices";
+import ProfessionalSkeleton from "../components/ui/Skeleton/ProfessionalSkeleton";
+import ServiceCard from "../components/services/ServiceCard";
 
 export default function ServicesPage() {
    const currentDate = new Date();
 
    const [search, setSearch] = useState("");
-
    const handleNewService = () => {};
+
+   const { data: servicesData, isLoading: loadingServices } = useServicesWithProfessionals();
+   const services = servicesData?.services ?? [];
+
 
    return (
       <>
@@ -77,6 +83,29 @@ export default function ServicesPage() {
                   Nuevo servicio
                </button>
             </div>
+
+            {loadingServices ? (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+                  {[...Array(6)].map((_, i) => (
+                    <ProfessionalSkeleton key={i} />
+                  ))}
+                </div>
+              ) : services.length === 0 ? (
+                <div className="bg-white rounded-xl border border-slate-200 p-8 text-sm text-slate-500">
+                  No hay profesionales cargados.
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-stretch">
+                    {services.map((service) => (
+                      <ServiceCard
+                        key={service.id}
+                        service={service}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
          </div>
       </>
    );

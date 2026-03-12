@@ -147,3 +147,20 @@ export type UpdateProfessionalSchedulesPayload = {
     endTime: string;
   }>;
 };
+
+
+export type ServiceWithProfessional = {
+  id: string;
+  name: string;
+  durationMin: number;
+  basePrice: number;
+  active: boolean;
+  professionalServices: {
+    professional: {
+      id: string;
+      name: string;
+      active: boolean;
+      color?: string;
+    };
+  }[];
+};

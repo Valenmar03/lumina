@@ -40,6 +40,43 @@ export class ServiceService {
     });
   }
 
+  async listServicesWithProfessional(params?: { activeOnly?: boolean; search?: string }) {
+    const activeOnly = params?.activeOnly ?? true;
+    const search = params?.search?.trim();
+
+    return prisma.service.findMany({
+      where: {
+        businessId: BUSINESS_ID,
+        ...(activeOnly ? { active: true } : {}),
+        ...(search
+          ? {
+              name: { contains: search, mode: "insensitive" },
+            }
+          : {}),
+      },
+      include: {
+        professionalServices: {
+          where: {
+            professional: {
+              active: true,
+            },
+          },
+          include: {
+            professional: {
+              select: {
+                id: true,
+                name: true,
+                active: true,
+                color: true
+              },
+            },
+          },
+        },
+      },
+      orderBy: { name: "asc" },
+    });
+  }
+
   async getServiceById(id: string) {
     const service = await prisma.service.findFirst({
       where: {

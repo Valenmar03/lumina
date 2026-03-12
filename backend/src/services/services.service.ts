@@ -2,8 +2,27 @@ import { prisma } from "../db/prisma";
 
 const BUSINESS_ID = "8c0fe826-dacb-48bf-924a-c6eaa9e1fe76";
 
+type ListServicesParams = {
+  activeOnly?: boolean;
+  search?: string;
+};
+
+type CreateServiceInput = {
+  name: string;
+  durationMin: number;
+  basePrice: number;
+  active?: boolean;
+};
+
+type UpdateServiceInput = {
+  name?: string;
+  durationMin?: number;
+  basePrice?: number;
+  active?: boolean;
+};
+
 export class ServiceService {
-  async listServices(params?: { activeOnly?: boolean; search?: string }) {
+  async listServices(params?: ListServicesParams) {
     const activeOnly = params?.activeOnly ?? true;
     const search = params?.search?.trim();
 
@@ -18,6 +37,147 @@ export class ServiceService {
           : {}),
       },
       orderBy: { name: "asc" },
+    });
+  }
+
+  async getServiceById(id: string) {
+    const service = await prisma.service.findFirst({
+      where: {
+        id,
+        businessId: BUSINESS_ID,
+      },
+    });
+
+    if (!service) {
+      const error: any = new Error("Service not found");
+      error.status = 404;
+      throw error;
+    }
+
+    return service;
+  }
+
+  async createService(data: CreateServiceInput) {
+    const name = data.name?.trim();
+
+    if (!name) {
+      const error: any = new Error("Name is required");
+      error.status = 400;
+      throw error;
+    }
+
+    if (!Number.isInteger(data.durationMin) || data.durationMin <= 0) {
+      const error: any = new Error("durationMin must be a positive integer");
+      error.status = 400;
+      throw error;
+    }
+
+    if (typeof data.basePrice !== "number" || Number.isNaN(data.basePrice) || data.basePrice < 0) {
+      const error: any = new Error("basePrice must be a number greater than or equal to 0");
+      error.status = 400;
+      throw error;
+    }
+
+    const existing = await prisma.service.findFirst({
+      where: {
+        businessId: BUSINESS_ID,
+        name: { equals: name, mode: "insensitive" },
+      },
+    });
+
+    if (existing) {
+      const error: any = new Error("A service with that name already exists");
+      error.status = 409;
+      throw error;
+    }
+
+    return prisma.service.create({
+      data: {
+        businessId: BUSINESS_ID,
+        name,
+        durationMin: data.durationMin,
+        basePrice: data.basePrice,
+        active: data.active ?? true,
+      },
+    });
+  }
+
+  async updateService(id: string, data: UpdateServiceInput) {
+    await this.getServiceById(id);
+
+    const updateData: any = {};
+
+    if (data.name !== undefined) {
+      const name = data.name.trim();
+
+      if (!name) {
+        const error: any = new Error("Name cannot be empty");
+        error.status = 400;
+        throw error;
+      }
+
+      const existing = await prisma.service.findFirst({
+        where: {
+          businessId: BUSINESS_ID,
+          name: { equals: name, mode: "insensitive" },
+          NOT: { id },
+        },
+      });
+
+      if (existing) {
+        const error: any = new Error("A service with that name already exists");
+        error.status = 409;
+        throw error;
+      }
+
+      updateData.name = name;
+    }
+
+    if (data.durationMin !== undefined) {
+      if (!Number.isInteger(data.durationMin) || data.durationMin <= 0) {
+        const error: any = new Error("durationMin must be a positive integer");
+        error.status = 400;
+        throw error;
+      }
+
+      updateData.durationMin = data.durationMin;
+    }
+
+    if (data.basePrice !== undefined) {
+      if (typeof data.basePrice !== "number" || Number.isNaN(data.basePrice) || data.basePrice < 0) {
+        const error: any = new Error("basePrice must be a number greater than or equal to 0");
+        error.status = 400;
+        throw error;
+      }
+
+      updateData.basePrice = data.basePrice;
+    }
+
+    if (data.active !== undefined) {
+      updateData.active = data.active;
+    }
+
+    return prisma.service.update({
+      where: { id },
+      data: updateData,
+    });
+  }
+
+  async deleteService(id: string) {
+    await this.getServiceById(id);
+
+    return prisma.service.update({
+      where: { id },
+      data: { active: false },
+    });
+  }
+
+  async toggleServiceActive(id: string, active: boolean) {
+    await this.getServiceById(id);
+
+    return prisma.service.update({
+      where: { id },
+      data: { active },
     });
   }
 }

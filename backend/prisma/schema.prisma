@@ -105,6 +105,7 @@ model Service {
   businessId  String
   name        String
   durationMin Int
+  description String?
   basePrice   Decimal
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())

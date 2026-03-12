@@ -60,7 +60,6 @@ export class ProfessionalService {
     return prisma.professional.findMany({
       where: {
         businessId: BUSINESS_ID,
-        active: true,
       },
       orderBy: { name: "asc" },
     });

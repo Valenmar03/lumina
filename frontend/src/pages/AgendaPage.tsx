@@ -119,16 +119,11 @@ export default function AgendaPage() {
    const handleSlotClick = (
       date: Date,
       time: string,
-      professionalId?: string,
     ) => {
       setPrefillSlot({
         date: format(date, "yyyy-MM-dd"),
         time,
       });
-
-      if (professionalId) {
-        setSelectedProfessionalId(professionalId);
-      }
 
       setShowNewAppointmentModal(true);
     };

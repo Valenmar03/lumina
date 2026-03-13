@@ -197,7 +197,7 @@ export default function ServiceDetailModal({
             />
           </div>
 
-          <div className="grid grid-cols-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
             <div>
 
                 <div className="flex items-center gap-2 mb-3">

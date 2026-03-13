@@ -49,6 +49,13 @@ export type UpdateServicePayload = {
   active?: boolean;
 };
 
+export type CreateServicePayload = {
+  name: string;
+  description?: string;
+  durationMin: number;
+  basePrice: number;
+  active?: boolean;
+};
 
 
 //PROFESSIONAL - SERVICE

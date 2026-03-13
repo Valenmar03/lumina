@@ -146,6 +146,7 @@ model Client {
 
   @@index([businessId])
   @@index([phone])
+  @@unique([businessId, phone])
 }
 
 model Appointment {

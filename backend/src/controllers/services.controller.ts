@@ -24,7 +24,7 @@ export async function getServicesWithProfessionalHandler(req: Request, res: Resp
 
     const services = await serviceService.listServicesWithProfessional({
       search: search ? String(search) : undefined,
-      activeOnly: activeOnly ? String(activeOnly) !== "false" : true,
+      activeOnly: activeOnly ? String(activeOnly) !== "true" : false,
     });
 
     return res.json({ services });
@@ -71,16 +71,17 @@ export async function createServiceHandler(req: Request, res: Response) {
 export async function updateServiceHandler(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const { name, durationMin, basePrice, active } = req.body;
+    const { name, description, durationMin, basePrice, active } = req.body;
 
     const service = await serviceService.updateService(String(id), {
       ...(name !== undefined ? { name } : {}),
+      ...(description !== undefined ? { description } : {}),
       ...(durationMin !== undefined ? { durationMin: Number(durationMin) } : {}),
       ...(basePrice !== undefined ? { basePrice: Number(basePrice) } : {}),
       ...(active !== undefined
         ? { active: typeof active === "boolean" ? active : String(active) === "true" }
         : {}),
-      });
+    });
 
     return res.json({ service });
   } catch (err: any) {
@@ -89,7 +90,6 @@ export async function updateServiceHandler(req: Request, res: Response) {
     });
   }
 }
-
 export async function deleteServiceHandler(req: Request, res: Response) {
   try {
     const { id } = req.params;

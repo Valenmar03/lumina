@@ -19,6 +19,7 @@ type UpdateServiceInput = {
   durationMin?: number;
   basePrice?: number;
   active?: boolean;
+  description?: string;
 };
 
 export class ServiceService {
@@ -41,7 +42,7 @@ export class ServiceService {
   }
 
   async listServicesWithProfessional(params?: { activeOnly?: boolean; search?: string }) {
-    const activeOnly = params?.activeOnly ?? true;
+    const activeOnly = params?.activeOnly ?? false;
     const search = params?.search?.trim();
 
     return prisma.service.findMany({
@@ -170,6 +171,10 @@ export class ServiceService {
       updateData.name = name;
     }
 
+    if (data.description !== undefined) {
+      updateData.description = data.description?.trim() || null;
+    }
+
     if (data.durationMin !== undefined) {
       if (!Number.isInteger(data.durationMin) || data.durationMin <= 0) {
         const error: any = new Error("durationMin must be a positive integer");
@@ -181,8 +186,14 @@ export class ServiceService {
     }
 
     if (data.basePrice !== undefined) {
-      if (typeof data.basePrice !== "number" || Number.isNaN(data.basePrice) || data.basePrice < 0) {
-        const error: any = new Error("basePrice must be a number greater than or equal to 0");
+      if (
+        typeof data.basePrice !== "number" ||
+        Number.isNaN(data.basePrice) ||
+        data.basePrice < 0
+      ) {
+        const error: any = new Error(
+          "basePrice must be a number greater than or equal to 0"
+        );
         error.status = 400;
         throw error;
       }

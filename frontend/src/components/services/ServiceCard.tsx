@@ -2,10 +2,11 @@ import { Clock, DollarSign } from "lucide-react";
 import type { ServiceWithProfessional } from "../../types/entities";
 type Props = {
     service: ServiceWithProfessional;
+    onClick?: () => void
 }
 
 
-export default function ServiceCard({service}: Props) {
+export default function ServiceCard({service, onClick}: Props) {
 
     const assignedProfs = service.professionalServices
 
@@ -13,10 +14,7 @@ export default function ServiceCard({service}: Props) {
    return (
       <div
          className="bg-white rounded-xl border border-slate-200/80 p-4 hover:shadow-sm transition-all cursor-pointer"
-        //  onClick={() => {
-        //     setEditing(service);
-        //     setShowForm(true);
-        //  }}
+         onClick={onClick}
       >
          <div className="flex items-start justify-between">
             <h4 className="text-sm font-semibold text-slate-800">

@@ -40,6 +40,16 @@ export type ServiceWithProfessional = {
 };
 
 
+export type UpdateServicePayload = {
+  serviceId: string;
+  name?: string;
+  description?: string;
+  durationMin?: number;
+  basePrice?: number;
+  active?: boolean;
+};
+
+
 
 //PROFESSIONAL - SERVICE
 

@@ -6,15 +6,30 @@ import { useState } from "react";
 import { useServicesWithProfessionals } from "../hooks/useServices";
 import ProfessionalSkeleton from "../components/ui/Skeleton/ProfessionalSkeleton";
 import ServiceCard from "../components/services/ServiceCard";
+import type { ServiceWithProfessional } from "../types/entities";
+import ServiceDetailModal from "../components/services/ServiceDetailModal";
 
 export default function ServicesPage() {
    const currentDate = new Date();
 
    const [search, setSearch] = useState("");
+   const [serviceDetailOpen, setServiceDetailOpen] = useState(false);
+   const [selectedService, setSelectedService] = useState<ServiceWithProfessional | null>(null);
+
    const handleNewService = () => {};
 
    const { data: servicesData, isLoading: loadingServices } = useServicesWithProfessionals();
    const services = servicesData?.services ?? [];
+
+   const handleOpenService = (service: ServiceWithProfessional) => {
+      setSelectedService(service);
+      setServiceDetailOpen(true);
+   };
+
+   const handleCloseServiceDetail = () => {
+      setServiceDetailOpen(false);
+      setSelectedService(null);
+   };
 
 
    return (
@@ -101,12 +116,19 @@ export default function ServicesPage() {
                       <ServiceCard
                         key={service.id}
                         service={service}
-                      />
+                        onClick={() => handleOpenService(service)}
+                     />
                     ))}
                   </div>
                 </div>
               )}
          </div>
+
+         <ServiceDetailModal
+            open={serviceDetailOpen}
+            onClose={handleCloseServiceDetail}
+            service={selectedService}
+         />
       </>
    );
 }

@@ -1,8 +1,18 @@
 import { Router } from "express";
-import { getClientsHandler } from "../controllers/clients.controller";
+import {
+  createClientHandler,
+  getClientByIdHandler,
+  listClientsHandler,
+  updateClientHandler,
+  deleteClientHandler,
+} from "../controllers/clients.controller";
 
 const router = Router();
 
-router.get("/", getClientsHandler);
+router.get("/", listClientsHandler);
+router.get("/:id", getClientByIdHandler);
+router.post("/", createClientHandler);
+router.patch("/:id", updateClientHandler);
+router.delete("/:id", deleteClientHandler);
 
 export default router;

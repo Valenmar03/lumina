@@ -83,3 +83,17 @@ export async function deleteClientHandler(req: Request, res: Response) {
     });
   }
 }
+
+export async function getClientAppointmentsHandler(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+
+    const appointments = await clientService.getClientAppointments(String(id));
+
+    return res.json({ appointments });
+  } catch (err: any) {
+    return res.status(err?.status ?? 500).json({
+      error: err?.message ?? "Server error",
+    });
+  }
+}

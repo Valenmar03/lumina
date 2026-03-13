@@ -5,6 +5,7 @@ import {
   getClients,
   searchClients,
   updateClient,
+  getClientAppointments 
 } from "../services/clients.api";
 import type { CreateClientPayload, UpdateClientPayload } from "../types/entities";
 
@@ -57,5 +58,13 @@ export function useDeleteClient() {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["clients-search"] });
     },
+  });
+}
+
+export function useClientAppointments(clientId?: string) {
+  return useQuery({
+    queryKey: ["client-appointments", clientId],
+    queryFn: () => getClientAppointments(clientId!),
+    enabled: !!clientId,
   });
 }

@@ -1,5 +1,5 @@
 import { apiFetch } from "./api";
-import type { Client, CreateClientPayload, UpdateClientPayload } from "../types/entities";
+import type { Client, ClientAppointments, CreateClientPayload, UpdateClientPayload } from "../types/entities";
 
 export function getClients(search?: string) {
   const query = search ? `?search=${encodeURIComponent(search)}` : "";
@@ -42,4 +42,8 @@ export async function deleteClient(clientId: string) {
   return apiFetch<void>(`/clients/${clientId}`, {
     method: "DELETE",
   });
+}
+
+export function getClientAppointments(clientId: string) {
+  return apiFetch<{ appointments: ClientAppointments[] }>(`/clients/${clientId}/appointments`);
 }

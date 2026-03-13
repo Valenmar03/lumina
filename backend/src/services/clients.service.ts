@@ -271,6 +271,36 @@ class ClientService {
       take: limit,
     });
   }
+
+  async getClientAppointments(clientId: string) {
+    await this.getClientById(clientId);
+
+    return prisma.appointment.findMany({
+      where: {
+        businessId: BUSINESS_ID,
+        clientId,
+      },
+      include: {
+        service: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        professional: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          },
+        },
+      },
+      orderBy: {
+        startAt: "desc",
+      },
+      take: 20,
+    });
+  }
 }
 
 export const clientService = new ClientService();

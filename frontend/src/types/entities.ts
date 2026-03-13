@@ -25,6 +25,22 @@ export type UpdateClientPayload = {
   notes?: string;
 };
 
+export type ClientAppointments = {
+  id: string;
+  startAt: string;
+  status: string;
+  priceFinal?: number;
+  service?: {
+    id: string;
+    name: string;
+  };
+  professional?: {
+    id: string;
+    name: string;
+    color?: string;
+  };
+}
+
 //SERVICE
 export type Service = {
   id: string;

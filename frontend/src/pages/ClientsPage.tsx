@@ -8,6 +8,7 @@ import { useClients } from "../hooks/useClients";
 import type { Client } from "../types/entities";
 import ClientDetailModal from "../components/clients/ClientDetailModal";
 import NewClientFormModal from "../components/clients/NewClientFormModal";
+import ClientDetailSheet from "../components/clients/ClientDetailSheet";
 
 export default function ClientsPage() {
   const currentDate = new Date();
@@ -16,6 +17,7 @@ export default function ClientsPage() {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [showClientModal, setShowClientModal] = useState(false);
   const [showNewClientModal, setShowNewClientModal] = useState(false);
+  const [clientSheetOpen, setClientSheetOpen] = useState(false);
 
   const { data: clientsData, isLoading: clientsLoading } = useClients(search);
   const clients = clientsData?.clients ?? [];
@@ -61,14 +63,20 @@ export default function ClientsPage() {
     setShowClientModal(true);
   };
 
-  const handleCloseClientModal = () => {
-    setSelectedClient(null);
-    setShowClientModal(false);
+  const handleDetailSheetClient = (client: Client) => {
+    setSelectedClient(client);
+    setClientSheetOpen(true);
   };
 
-  const handleCloseNewClientModal = () => {
-    setShowNewClientModal(false);
-  };
+
+const handleCloseClientModal = () => {
+  setSelectedClient(null);
+  setShowClientModal(false);
+};
+
+const handleCloseNewClientModal = () => {
+  setShowNewClientModal(false);
+};
 
   return (
     <>
@@ -182,10 +190,11 @@ export default function ClientsPage() {
               <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-slate-50 border-b border-slate-200 text-xs font-medium text-slate-500">
                 <div className="col-span-4">Cliente</div>
                 <div className="col-span-2">Teléfono</div>
-                <div className="col-span-3">Email</div>
+                <div className="col-span-2">Email</div>
                 <div className="col-span-1 text-center">Visitas</div>
                 <div className="col-span-1 text-center">Total gastado</div>
-                <div className="col-span-1 text-right">Acciones</div>
+                <div className="col-span-1 text-center"></div>
+                <div className="col-span-1 text-right"></div>
               </div>
 
               <div className="divide-y divide-slate-100">
@@ -220,7 +229,7 @@ export default function ClientsPage() {
                         </div>
                       </div>
 
-                      <div className="col-span-3 min-w-0">
+                      <div className="col-span-2 min-w-0">
                         <div className="text-sm text-slate-600 truncate">
                           {client.email || "—"}
                         </div>
@@ -241,10 +250,19 @@ export default function ClientsPage() {
                       <div className="col-span-1 flex justify-end">
                         <button
                           type="button"
-                          onClick={() => handleEditClient(client)}
-                          className="inline-flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                          onClick={() => handleDetailSheetClient(client)}
+                          className="inline-flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer"
                         >
+                          
                           <Eye className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="col-span-1 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => handleEditClient(client)}
+                          className="inline-flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer"
+                        >
                           <span>Editar</span>
                         </button>
                       </div>
@@ -300,10 +318,17 @@ export default function ClientsPage() {
 
                     <button
                       type="button"
-                      onClick={() => handleEditClient(client)}
+                      onClick={() => handleDetailSheetClient(client)}
                       className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                     >
                       <Eye className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleEditClient(client)}
+                      className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                    >
                       Editar
                     </button>
                   </div>
@@ -323,6 +348,12 @@ export default function ClientsPage() {
       <NewClientFormModal
         open={showNewClientModal}
         onClose={handleCloseNewClientModal}
+      />
+
+      <ClientDetailSheet
+        open={clientSheetOpen}
+        onClose={() => setClientSheetOpen(false)}
+        client={selectedClient}
       />
     </>
   );

@@ -1,7 +1,7 @@
 import { Clock3 } from "lucide-react";
-import { useProfessionalSchedule } from "../../hooks/useProfessionalSchedule";
 import { useProfessionalServices } from "../../hooks/useProfessionalServices";
 import type { Professional } from "../../types/entities";
+import { useProfessionalSchedule } from "../../hooks/useProfessionalSchedule";
 
 type Props = {
   professional: Professional;

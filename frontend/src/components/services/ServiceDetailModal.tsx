@@ -4,7 +4,7 @@ import { Clock3, DollarSign, FileText, User2 } from "lucide-react";
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 import { useProfessionals } from "../../hooks/useProfessionals";
-import { useUpdateService } from "../../hooks/useUpdateService";
+import { useUpdateService } from "../../hooks/useServices";
 import type { ServiceWithProfessional } from "../../types/entities";
 
 type Props = {

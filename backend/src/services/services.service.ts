@@ -12,6 +12,7 @@ type CreateServiceInput = {
   durationMin: number;
   basePrice: number;
   active?: boolean;
+  description?: string;
 };
 
 type UpdateServiceInput = {

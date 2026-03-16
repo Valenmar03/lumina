@@ -74,22 +74,27 @@ export default function SummaryDetail({
     <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-            <p className="text-sm font-medium text-slate-800">
-                Resumen del turno
-            </p>
-            <p className="mt-1 text-sm text-slate-600">
-                {appointment.client.fullName} · {appointment.service.name} ·{" "}
-                {format(parseISO(appointment.startAt), "dd/MM/yyyy HH:mm")}
-            </p>
+                <p className="text-sm font-medium text-slate-800">
+                    Resumen del turno
+                </p>
+                <p className="text-sm text-slate-600">
+                    {appointment.client.fullName} · {appointment.service.name} ·{" "}
+                    {format(parseISO(appointment.startAt), "dd/MM/yyyy HH:mm")}
+                </p>
+                <div>
+                    <p className="mt-2 text-sm text-slate-600">
+                        Precio del Servicio: ${Number(appointment.priceFinal).toLocaleString("es-AR")}
+                    </p>
+                    {appointment?.depositAmount != null && Number(appointment.depositAmount) > 0 && (
+                        <p className="text-sm text-slate-600">
+                            Seña registrada:{" "}
+                            <span className="font-semibold text-teal-700">
+                            ${Number(appointment.depositAmount).toLocaleString("es-AR")}
+                            </span>
+                        </p>
+                    )}
+                </div>
             </div>
-            {appointment?.depositAmount != null && Number(appointment.depositAmount) > 0 && (
-            <p className="mt-2 text-sm text-slate-600">
-                Seña registrada:{" "}
-                <span className="font-semibold text-teal-700">
-                ${Number(appointment.depositAmount).toLocaleString("es-AR")}
-                </span>
-            </p>
-            )}
 
             <span
             className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${currentStatusUi.badgeClasses}`}

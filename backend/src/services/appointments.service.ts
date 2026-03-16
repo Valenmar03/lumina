@@ -21,6 +21,14 @@ type CreateAppointmentInput = {
   startAt: string; // ISO (puede venir con -03:00)
 };
 
+type UpdateAppointmentInput = {
+  appointmentId: string;
+  professionalId: string;
+  clientId: string;
+  serviceId: string;
+  startAt: string;
+};
+
 type GetByRangeParams = {
   professionalId?: string;
   from: string; // ISO
@@ -253,6 +261,152 @@ export class AppointmentService {
     return updated;
   }
 
+
+  async update(input: UpdateAppointmentInput) {
+    const { appointmentId, professionalId, clientId, serviceId, startAt } = input;
+
+    const startDate = new Date(startAt);
+    if (Number.isNaN(startDate.getTime())) throw badRequest("Invalid startAt");
+
+    const appointment = await prisma.appointment.findFirst({
+      where: {
+        id: appointmentId,
+        businessId: BUSINESS_ID,
+      },
+    });
+
+    if (!appointment) {
+      throw badRequest("Appointment not found");
+    }
+
+    if (appointment.status !== "RESERVED" && appointment.status !== "DEPOSIT_PAID") {
+      throw badRequest("Only RESERVED or DEPOSIT_PAID appointments can be updated");
+    }
+
+    const [service, professional, client] = await Promise.all([
+      prisma.service.findFirst({
+        where: {
+          id: serviceId,
+          businessId: BUSINESS_ID,
+          active: true,
+        },
+      }),
+      prisma.professional.findFirst({
+        where: {
+          id: professionalId,
+          businessId: BUSINESS_ID,
+          active: true,
+        },
+      }),
+      prisma.client.findFirst({
+        where: {
+          id: clientId,
+          businessId: BUSINESS_ID,
+        },
+      }),
+    ]);
+
+    if (!service) throw badRequest("Service not found");
+    if (!professional) throw badRequest("Professional not found");
+    if (!client) throw badRequest("Client not found");
+
+    const professionalService = await prisma.professionalService.findUnique({
+      where: {
+        professionalId_serviceId: { professionalId, serviceId },
+      },
+    });
+
+    if (!professionalService) {
+      throw badRequest("This professional does not perform this service");
+    }
+
+    const endDate = new Date(startDate.getTime() + service.durationMin * 60_000);
+
+    const overlapping = await prisma.appointment.findFirst({
+      where: {
+        businessId: BUSINESS_ID,
+        professionalId,
+        status: "RESERVED",
+        id: { not: appointmentId },
+        startAt: { lt: endDate },
+        endAt: { gt: startDate },
+      },
+    });
+
+    if (overlapping) {
+      throw badRequest("This time slot is already occupied");
+    }
+
+    const dayOfWeek = getDayOfWeek(startDate);
+    const startHHMM = toHHMM(startDate);
+    const endHHMM = toHHMM(endDate);
+
+    const blocks = await prisma.professionalSchedule.findMany({
+      where: { professionalId, dayOfWeek },
+      orderBy: [{ startTime: "asc" }],
+    });
+
+    let warning: ScheduleWarning = null;
+
+    if (blocks.length === 0) {
+      warning = { type: "NO_SCHEDULE", severity: "HARD" };
+    } else {
+      const startBlock = blocks.find(
+        (b) => startHHMM >= b.startTime && startHHMM <= b.endTime
+      );
+
+      if (!startBlock) {
+        warning = { type: "OUTSIDE_SCHEDULE_START", severity: "HARD" };
+      } else {
+        const over =
+          hhmmToMinutes(endHHMM) - hhmmToMinutes(startBlock.endTime);
+
+        if (over > 0) {
+          warning = {
+            type: "EXCEEDS_SCHEDULE",
+            minutesOver: over,
+            severity: over <= SOFT_TOLERANCE_MIN ? "SOFT" : "HARD",
+          };
+        }
+      }
+    }
+
+    const updated = await prisma.appointment.update({
+      where: { id: appointmentId },
+      data: {
+        professionalId,
+        clientId,
+        serviceId,
+        startAt: startDate,
+        endAt: endDate,
+        priceFinal: service.basePrice,
+      },
+      include: {
+        client: true,
+        service: true,
+        professional: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          },
+        },
+      },
+    });
+
+    const isPendingResolution =
+      updated.status === "RESERVED" &&
+      updated.endAt.getTime() < Date.now();
+
+    return {
+      appointment: {
+        ...updated,
+        isPendingResolution,
+      },
+      warning,
+    };
+  }
+
     async reschedule(params: { appointmentId: string; startAt: string }) {
         const { appointmentId, startAt } = params;
 
@@ -335,7 +489,7 @@ export class AppointmentService {
         });
 
         return { appointment: updated, warning };
-        }
+    }
 }
 
 export const appointmentService = new AppointmentService();

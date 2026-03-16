@@ -22,8 +22,10 @@ export function updateAppointment(data: {
 }) {
   const { id, ...body } = data;
 
+  console.log(id, body)
+
   return apiFetch(`/appointments/${id}`, {
-    method: "PUT",
+    method: "PATCH",
     body: JSON.stringify(body),
   });
 }

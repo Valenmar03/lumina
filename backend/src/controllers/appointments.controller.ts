@@ -48,6 +48,33 @@ export async function getAppointmentsHandler(req: Request, res: Response) {
    }
 }
 
+export async function updateAppointmentHandler(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    const { professionalId, clientId, serviceId, startAt } = req.body;
+
+    if (!professionalId || !clientId || !serviceId || !startAt) {
+      return res.status(400).json({
+        error: "Missing required fields: professionalId, clientId, serviceId, startAt",
+      });
+    }
+
+    const updated = await appointmentService.update({
+      appointmentId: String(id),
+      professionalId: String(professionalId),
+      clientId: String(clientId),
+      serviceId: String(serviceId),
+      startAt: String(startAt),
+    });
+
+    return res.json(updated);
+  } catch (err: any) {
+    return res.status(err?.status ?? 500).json({
+      error: err?.message ?? "Server error",
+    });
+  }
+}
+
 export async function changeAppointmentStatusHandler(
   req: Request,
   res: Response,

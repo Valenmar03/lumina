@@ -11,7 +11,7 @@ import { useProfessionals } from "../../hooks/useProfessionals";
 import { useProfessionalServices } from "../../hooks/useProfessionalServices";
 import { useAvailability } from "../../hooks/useAvailability";
 
-import { AppointmentStatus, type AgendaAppointment, type AppointmentUiStatus, type AppointmentStatus as EntityAppointmentStatus } from "../../types/entities";
+import { AppointmentStatus, appointmentStatusColors, type AgendaAppointment, type AppointmentUiStatus, type AppointmentStatus as EntityAppointmentStatus } from "../../types/entities";
 import {
   updateAppointment,
   changeAppointmentStatus,
@@ -235,7 +235,9 @@ export default function AppointmentDetailModal({
     !!clientId &&
     !!serviceId &&
     !!selectedStartAt &&
-    !isFormDisabled;
+    !isFormDisabled && 
+    (appointment.status === "RESERVED" || 
+      appointment.status === "DEPOSIT_PAID")
 
   const handleSelectClient = (client: ClientOption) => {
     if (isFormDisabled) return;
@@ -282,6 +284,7 @@ export default function AppointmentDetailModal({
   );
 
   const handleSubmit = () => {
+
         if (!appointment?.id || !canSubmit) return;
   
         if (showDepositInput && !hasValidDepositAmount) {
@@ -345,13 +348,13 @@ export default function AppointmentDetailModal({
         view !== "status" && (
 
           <FooterDetail 
-          canSubmit={canSubmit}
-          showDepositInput={showDepositInput}
-          hasValidDepositAmount={hasValidDepositAmount}
-          isBusy={isBusy}
-          handleSubmit={handleSubmit}
-          updateMutation={updateMutation}
-          onClose={onClose}
+            canSubmit={canSubmit}
+            showDepositInput={showDepositInput}
+            hasValidDepositAmount={hasValidDepositAmount}
+            isBusy={isBusy}
+            handleSubmit={handleSubmit}
+            updateMutation={updateMutation}
+            onClose={onClose}
           />
         )
       }
@@ -434,183 +437,216 @@ export default function AppointmentDetailModal({
             </>
           )}
         {view === "status" && showDepositInput && !isCompleted && !isCanceled && (
-            <div className="rounded-xl border border-teal-200 bg-teal-50 px-4 py-4">
-              <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                Monto de seña
-              </label>
+          <div className="rounded-xl border border-teal-200 bg-teal-50 px-4 py-4 space-y-3">
+            
+            <label className="block text-sm font-medium text-slate-700">
+              Monto de seña
+            </label>
 
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={depositAmount}
-                onChange={(e) => {
-                  setDepositAmount(e.target.value);
-                  setDepositTouched(true);
-                }}
-                onBlur={() => setDepositTouched(true)}
-                placeholder="Ej: 5000"
-                disabled={isBusy}
-                className={`w-full rounded-lg border bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-teal-500 ${
-                  shouldShowDepositError ? "border-red-300" : "border-slate-200"
-                }`}
-              />
-              <div className="mt-2 space-y-1">
-                <p className="text-xs text-slate-500">
-                  Ingresá cuánto abonó el cliente para marcar el turno como señado.
-                  {servicePrice > 0 && (
-                    <>
-                      {" "}El valor del servicio es{" "}
-                      <span className="font-medium text-slate-700">
-                        ${servicePrice.toLocaleString("es-AR")}
-                      </span>.
-                    </>
-                  )}
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={depositAmount}
+              onChange={(e) => {
+                setDepositAmount(e.target.value);
+                setDepositTouched(true);
+              }}
+              onBlur={() => setDepositTouched(true)}
+              placeholder="Ej: 5000"
+              disabled={isBusy}
+              className={`w-full rounded-lg border bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-teal-500 ${
+                shouldShowDepositError ? "border-red-300" : "border-slate-200"
+              }`}
+            />
+
+            <div className="space-y-1">
+              <p className="text-xs text-slate-500">
+                Ingresá cuánto abonó el cliente para marcar el turno como señado.
+                {servicePrice > 0 && (
+                  <>
+                    {" "}El valor del servicio es{" "}
+                    <span className="font-medium text-slate-700">
+                      ${servicePrice.toLocaleString("es-AR")}
+                    </span>.
+                  </>
+                )}
+              </p>
+
+              {shouldShowDepositError && (
+                <p className="text-xs text-red-600">
+                  {isDepositGreaterThanService
+                    ? "La seña no puede ser mayor al valor del servicio."
+                    : "Tenés que ingresar una seña válida mayor a 0."}
                 </p>
-
-                {shouldShowDepositError && (
-                  <p className="text-xs text-red-600">
-                    {isDepositGreaterThanService
-                      ? "La seña no puede ser mayor al valor del servicio."
-                      : "Tenés que ingresar una seña válida mayor a 0."}
-                  </p>
-                )}
-              </div>
-            </div>
-        )}
-
-        {view === "edit" && (
-          <>
-
-          <Client
-            handleSelectClient={handleSelectClient}
-            clientBoxRef={clientBoxRef}
-            clientSearch={clientSearch}
-            isFormDisabled={isFormDisabled}
-            setClientSearch={setClientSearch}
-            setClientId={setClientId}
-            setClientComboboxOpen={setClientComboboxOpen}
-            handleClearClient={handleClearClient}
-            clientComboboxOpen={clientComboboxOpen}
-            clientsLoading={clientsLoading}
-            clients={clients}
-            clientId={clientId}
-            selectedClient={selectedClient}
-          />
-
-          <CustomSelect
-            label="Profesional"
-            placeholder="Seleccionar profesional"
-            value={selectedProfessionalId}
-            onChange={handleProfessionalChange}
-            options={professionalOptions}
-            loading={professionalsLoading}
-            loadingText="Cargando profesionales..."
-            emptyText="No hay profesionales disponibles."
-            disabled={isFormDisabled}
-          />
-
-          <CustomSelect
-            label="Servicio"
-            placeholder={
-              !selectedProfessionalId
-                ? "Seleccionar profesional primero"
-                : "Seleccionar servicio"
-            }
-            value={serviceId}
-            onChange={(nextServiceId) => {
-              setServiceId(nextServiceId);
-              setSelectedStartAt("");
-            }}
-            options={serviceOptions}
-            disabled={!selectedProfessionalId || isFormDisabled}
-            loading={professionalServicesLoading}
-            loadingText="Cargando servicios..."
-            emptyText="Este profesional no tiene servicios asignados."
-            helperText={
-              selectedProfessional
-                ? `Profesional seleccionado: ${selectedProfessional.name}`
-                : undefined
-            }
-          />
-
-          <CustomDatePicker
-            label="Fecha"
-            value={selectedDate}
-            onChange={handleDateChange}
-            color="teal"
-            disabled={isFormDisabled}
-          />
-
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <label className="block text-sm font-medium text-slate-700">
-                  Horarios disponibles
-                </label>
-                {selectedDate && (
-                  <span className="text-xs text-slate-500">Fecha: {selectedDate}</span>
-                )}
-              </div>
-
-              {!selectedProfessionalId ? (
-                <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-                  Elegí un profesional para continuar.
-                </div>
-              ) : !serviceId ? (
-                <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-                  Elegí un servicio para ver disponibilidad.
-                </div>
-              ) : availabilityLoading ? (
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-                  Buscando horarios disponibles...
-                </div>
-              ) : mergedSlots.length === 0 ? (
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-                  No hay horarios disponibles para ese día.
-                </div>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {mergedSlots.map((slot) => {
-                    const isSelected = selectedStartAt === slot.startAt;
-
-                    return (
-                      <button
-                        key={slot.startAt}
-                        type="button"
-                        onClick={() => setSelectedStartAt(slot.startAt)}
-                        disabled={isFormDisabled}
-                        className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
-                          isSelected
-                            ? "border-teal-600 bg-teal-50 text-teal-700"
-                            : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                        } ${isFormDisabled ? "cursor-not-allowed opacity-60" : ""}`}
-                      >
-                        {slot.label}
-                      </button>
-                    );
-                  })}
-                </div>
               )}
             </div>
 
-            {selectedSlotLabel && (
-              <div className="rounded-xl border border-teal-100 bg-teal-50 px-4 py-3">
-                <p className="text-sm text-teal-800">
-                  Horario seleccionado:{" "}
-                  <span className="font-semibold">{selectedSlotLabel}</span>
-                </p>
-              </div>
-            )}
+            {/* BOTON CONFIRMAR SEÑA */}
+            <div className="flex justify-end pt-1">
+              <button
+                type="button"
+                disabled={!hasValidDepositAmount || isBusy}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && hasValidDepositAmount) {
+                    handleChangeStatus(AppointmentStatus.DEPOSIT_PAID);
+                  }
+                }}
+                onClick={() =>
+                  handleChangeStatus(AppointmentStatus.DEPOSIT_PAID)
+                }
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors
+                  ${
+                    hasValidDepositAmount && !isBusy
+                      ? "bg-teal-600 text-white hover:bg-teal-700"
+                      : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                  }
+                `}
+              >
+                Confirmar seña
+              </button>
+            </div>
 
-            {(updateMutation.isError || statusMutation.isError) && (
-              <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {(updateMutation.error as Error)?.message ||
-                  (statusMutation.error as Error)?.message ||
-                  "No se pudo actualizar el turno."}
-              </div>
-            )}
-          </>
+          </div>
         )}
+
+        {view === "edit" && (
+          appointment!.status !== "RESERVED" && appointment!.status !== "DEPOSIT_PAID" ? (
+          <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+             Solo los turnos en estado reservado o señado puede modificarse
+          </div>
+         )
+          : (
+          <>
+            <Client
+              handleSelectClient={handleSelectClient}
+              clientBoxRef={clientBoxRef}
+              clientSearch={clientSearch}
+              isFormDisabled={isFormDisabled}
+              setClientSearch={setClientSearch}
+              setClientId={setClientId}
+              setClientComboboxOpen={setClientComboboxOpen}
+              handleClearClient={handleClearClient}
+              clientComboboxOpen={clientComboboxOpen}
+              clientsLoading={clientsLoading}
+              clients={clients}
+              clientId={clientId}
+              selectedClient={selectedClient}
+            />
+
+            <CustomSelect
+              label="Profesional"
+              placeholder="Seleccionar profesional"
+              value={selectedProfessionalId}
+              onChange={handleProfessionalChange}
+              options={professionalOptions}
+              loading={professionalsLoading}
+              loadingText="Cargando profesionales..."
+              emptyText="No hay profesionales disponibles."
+              disabled={isFormDisabled}
+            />
+
+            <CustomSelect
+              label="Servicio"
+              placeholder={
+                !selectedProfessionalId
+                  ? "Seleccionar profesional primero"
+                  : "Seleccionar servicio"
+              }
+              value={serviceId}
+              onChange={(nextServiceId) => {
+                setServiceId(nextServiceId);
+                setSelectedStartAt("");
+              }}
+              options={serviceOptions}
+              disabled={!selectedProfessionalId || isFormDisabled}
+              loading={professionalServicesLoading}
+              loadingText="Cargando servicios..."
+              emptyText="Este profesional no tiene servicios asignados."
+              helperText={
+                selectedProfessional
+                  ? `Profesional seleccionado: ${selectedProfessional.name}`
+                  : undefined
+              }
+            />
+
+            <CustomDatePicker
+              label="Fecha"
+              value={selectedDate}
+              onChange={handleDateChange}
+              color="teal"
+              disabled={isFormDisabled}
+            />
+
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <label className="block text-sm font-medium text-slate-700">
+                    Horarios disponibles
+                  </label>
+                  {selectedDate && (
+                    <span className="text-xs text-slate-500">Fecha: {selectedDate}</span>
+                  )}
+                </div>
+
+                {!selectedProfessionalId ? (
+                  <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+                    Elegí un profesional para continuar.
+                  </div>
+                ) : !serviceId ? (
+                  <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+                    Elegí un servicio para ver disponibilidad.
+                  </div>
+                ) : availabilityLoading ? (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+                    Buscando horarios disponibles...
+                  </div>
+                ) : mergedSlots.length === 0 ? (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+                    No hay horarios disponibles para ese día.
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {mergedSlots.map((slot) => {
+                      const isSelected = selectedStartAt === slot.startAt;
+
+                      return (
+                        <button
+                          key={slot.startAt}
+                          type="button"
+                          onClick={() => setSelectedStartAt(slot.startAt)}
+                          disabled={isFormDisabled}
+                          className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
+                            isSelected
+                              ? "border-teal-600 bg-teal-50 text-teal-700"
+                              : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                          } ${isFormDisabled ? "cursor-not-allowed opacity-60" : ""}`}
+                        >
+                          {slot.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {selectedSlotLabel && (
+                <div className="rounded-xl border border-teal-100 bg-teal-50 px-4 py-3">
+                  <p className="text-sm text-teal-800">
+                    Horario seleccionado:{" "}
+                    <span className="font-semibold">{selectedSlotLabel}</span>
+                  </p>
+                </div>
+              )}
+
+              {(updateMutation.isError || statusMutation.isError) && (
+                <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {(updateMutation.error as Error)?.message ||
+                    (statusMutation.error as Error)?.message ||
+                    "No se pudo actualizar el turno."}
+                </div>
+              )}
+            </>
+          ))}
 
         
       </div>

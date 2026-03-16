@@ -1,6 +1,6 @@
 import { format, parseISO } from "date-fns";
 import type { AgendaAppointment, Professional } from "../../types/entities";
-import MobileAppointmentCard from "./MobileAppointmentCard.tsx";
+import MobileAppointmentCard from "../appointment/MobileAppointmentCard.tsx";
 import { useAgendaDaily } from "../../hooks/useAgenda.ts";
 
 type Props = {

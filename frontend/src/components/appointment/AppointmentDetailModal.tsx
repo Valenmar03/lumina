@@ -1,34 +1,29 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
-import type { ReactNode } from "react";
 import {
-  AlertCircle,
   Check,
-  CheckCircle2,
   ChevronDown,
-  Clock3,
   Search,
-  Trash2,
-  UserX2,
   X,
 } from "lucide-react";
 
 import CustomSelect from "../ui/CustomSelect";
 import CustomDatePicker from "../ui/CustomDatePicker";
 import Modal from "../ui/Modal";
-import Button from "../ui/Button";
 
 import { useClients } from "../../hooks/useClients";
 import { useProfessionals } from "../../hooks/useProfessionals";
 import { useProfessionalServices } from "../../hooks/useProfessionalServices";
 import { useAvailability } from "../../hooks/useAvailability";
 
-import { AppointmentStatus, appointmentStatusLabels, type AgendaAppointment, type AppointmentUiStatus, type AppointmentStatus as EntityAppointmentStatus } from "../../types/entities";
+import { AppointmentStatus, type AgendaAppointment, type AppointmentUiStatus, type AppointmentStatus as EntityAppointmentStatus } from "../../types/entities";
 import {
   updateAppointment,
   changeAppointmentStatus,
 } from "../../services/appointments.api";
+import FooterDetail from "./FooterDetail";
+import SummaryDetail from "./SummaryDetail";
 
 type Props = {
   open: boolean;
@@ -42,57 +37,6 @@ type ClientOption = {
   phone?: string | null;
   email?: string | null;
 };
-
-type StatusUi = {
-  label: string;
-  badgeClasses: string;
-  icon: ReactNode;
-};
-
-const statusUiMap: Record<AppointmentUiStatus, StatusUi> = {
-  RESERVED: {
-    label: appointmentStatusLabels.RESERVED,
-    badgeClasses: "border-cyan-200 bg-cyan-50 text-cyan-700",
-    icon: <Clock3 className="h-3.5 w-3.5" />,
-  },
-  DEPOSIT_PAID: {
-    label: appointmentStatusLabels.DEPOSIT_PAID,
-    badgeClasses: "border-teal-200 bg-teal-50 text-teal-700",
-    icon: <Check className="h-3.5 w-3.5" />,
-  },
-  CANCELED: {
-    label: appointmentStatusLabels.CANCELED,
-    badgeClasses: "border-red-200 bg-red-50 text-red-700",
-    icon: <Trash2 className="h-3.5 w-3.5" />,
-  },
-  NO_SHOW: {
-    label: appointmentStatusLabels.NO_SHOW,
-    badgeClasses: "border-amber-200 bg-amber-50 text-amber-700",
-    icon: <UserX2 className="h-3.5 w-3.5" />,
-  },
-  COMPLETED: {
-    label: appointmentStatusLabels.COMPLETED,
-    badgeClasses: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    icon: <CheckCircle2 className="h-3.5 w-3.5" />,
-  },
-  PENDING_RESOLUTION: {
-    label: appointmentStatusLabels.PENDING_RESOLUTION,
-    badgeClasses: "border-violet-200 bg-violet-50 text-violet-700",
-    icon: <AlertCircle className="h-3.5 w-3.5" />,
-  },
-};
-
-function getStatusUi(status?: AppointmentUiStatus): StatusUi {
-  if (!status) {
-    return {
-      label: "Sin estado",
-      badgeClasses: "border-slate-200 bg-slate-50 text-slate-700",
-      icon: <AlertCircle className="h-3.5 w-3.5" />,
-    };
-  }
-
-  return statusUiMap[status];
-}
 
 export default function AppointmentDetailModal({
   open,
@@ -109,6 +53,10 @@ export default function AppointmentDetailModal({
   const [serviceId, setServiceId] = useState("");
   const [selectedStartAt, setSelectedStartAt] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
+
+  const [depositAmount, setDepositAmount] = useState("");
+  const [showDepositInput, setShowDepositInput] = useState(false);  
+  const [depositTouched, setDepositTouched] = useState(false);
 
   const clientBoxRef = useRef<HTMLDivElement | null>(null);
 
@@ -149,6 +97,9 @@ export default function AppointmentDetailModal({
       setServiceId("");
       setSelectedStartAt("");
       setSelectedDate("");
+      setDepositAmount("");
+      setShowDepositInput(false);
+      setDepositTouched(false);
       return;
     }
 
@@ -158,6 +109,11 @@ export default function AppointmentDetailModal({
     setServiceId(appointment.service.id);
     setSelectedStartAt(appointment.startAt);
     setSelectedDate(format(parseISO(appointment.startAt), "yyyy-MM-dd"));
+    setDepositAmount(
+      appointment.depositAmount != null ? String(appointment.depositAmount) : ""
+    );
+    setShowDepositInput(false);
+    setDepositTouched(false);
   }, [open, appointment]);
 
   useEffect(() => {
@@ -252,40 +208,31 @@ export default function AppointmentDetailModal({
   const isBusy = updateMutation.isPending || statusMutation.isPending;
   const isFormDisabled = isBusy || isLocked;
 
+  const parsedDepositAmount = Number(depositAmount);
+  const servicePrice = Number(appointment?.priceFinal ?? 0);
+
+  const hasDepositValue =
+    depositAmount.trim() !== "" && !Number.isNaN(parsedDepositAmount);
+
+  const isDepositGreaterThanService =
+    hasDepositValue && servicePrice > 0 && parsedDepositAmount > servicePrice;
+
+  const hasValidDepositAmount =
+    hasDepositValue &&
+    parsedDepositAmount > 0 &&
+    !isDepositGreaterThanService;
+
+  const shouldShowDepositError =
+    showDepositInput && depositTouched && !hasValidDepositAmount;
+
   const canSubmit =
     !!appointment?.id &&
     !!selectedProfessionalId &&
     !!clientId &&
     !!serviceId &&
     !!selectedStartAt &&
-    !isFormDisabled;
-
-  const handleSubmit = () => {
-    if (!appointment?.id || !canSubmit) return;
-
-    updateMutation.mutate({
-      id: appointment.id,
-      professionalId: selectedProfessionalId,
-      clientId,
-      serviceId,
-      startAt: selectedStartAt,
-    });
-  };
-
-  const handleChangeStatus = (status: AppointmentStatus) => {
-    if (!appointment?.id || isBusy) return;
-
-    const needsConfirm = status === "CANCELED";
-    if (needsConfirm) {
-      const confirmed = window.confirm("¿Seguro que querés cancelar este turno?");
-      if (!confirmed) return;
-    }
-
-    statusMutation.mutate({
-      id: appointment.id,
-      status,
-    });
-  };
+    !isFormDisabled &&
+    (!showDepositInput || hasValidDepositAmount);
 
   const handleSelectClient = (client: ClientOption) => {
     if (isFormDisabled) return;
@@ -331,7 +278,70 @@ export default function AppointmentDetailModal({
     [professionalServices]
   );
 
-  const currentStatusUi = getStatusUi(effectiveStatus);
+  const handleSubmit = () => {
+        if (!appointment?.id || !canSubmit) return;
+  
+        if (showDepositInput && !hasValidDepositAmount) {
+           setDepositTouched(true);
+           return;
+        }
+  
+        updateMutation.mutate({
+           id: appointment.id,
+           professionalId: selectedProfessionalId,
+           clientId,
+           serviceId,
+           startAt: selectedStartAt,
+        });
+     };
+  
+     const handleChangeStatus = (status: AppointmentStatus) => {
+        if (!appointment?.id || isBusy) return;
+  
+        if (status === "DEPOSIT_PAID") {
+           if (!showDepositInput) {
+              setShowDepositInput(true);
+              setDepositTouched(false);
+              return;
+           }
+  
+           setDepositTouched(true);
+  
+           if (!hasValidDepositAmount) {
+              if (isDepositGreaterThanService) {
+                 window.alert(
+                    "La seña no puede ser mayor al valor del servicio.",
+                 );
+                 return;
+              }
+  
+              window.alert("Ingresá un monto de seña válido mayor a 0.");
+              return;
+           }
+  
+           statusMutation.mutate({
+              id: appointment.id,
+              status,
+              depositAmount: parsedDepositAmount,
+           });
+  
+           return;
+        }
+  
+        const needsConfirm = status === "CANCELED";
+        if (needsConfirm) {
+           const confirmed = window.confirm(
+              "¿Seguro que querés cancelar este turno?",
+           );
+           if (!confirmed) return;
+        }
+  
+        statusMutation.mutate({
+           id: appointment.id,
+           status,
+        });
+     };
+
 
   return (
     <Modal
@@ -341,109 +351,79 @@ export default function AppointmentDetailModal({
       description="Visualizá, editá y gestioná el estado del turno."
       size="lg"
       footer={
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap gap-2">
-            {!isCanceled && (
-              <Button
-                variant="border border-red-200 bg-red-100 text-red-600 hover:bg-red-200"
-                onClick={() => handleChangeStatus("CANCELED")}
-                disabled={!appointment?.id || isBusy}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                {statusMutation.isPending ? "Procesando..." : "Cancelar"}
-              </Button>
-            )}
-
-            {currentStatus !== "NO_SHOW" && !isCompleted && !isCanceled && (
-              <Button
-                variant="border border-amber-200 bg-amber-100 text-amber-700 hover:bg-amber-200"
-                onClick={() => handleChangeStatus("NO_SHOW")}
-                disabled={!appointment?.id || isBusy}
-              >
-                <UserX2 className="mr-2 h-4 w-4" />
-                {appointmentStatusLabels.NO_SHOW}
-              </Button>
-            )}
-
-            {!isCompleted && !isCanceled && (
-              <Button
-                variant="border border-emerald-200 bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                onClick={() => handleChangeStatus("COMPLETED")}
-                disabled={!appointment?.id || isBusy}
-              >
-                <CheckCircle2 className="mr-2 h-4 w-4" />
-                {appointmentStatusLabels.COMPLETED}
-              </Button>
-            )}
-
-            {effectiveStatus !== "RESERVED" && !isCompleted && !isCanceled && (
-              <Button
-                variant="border border-cyan-200 bg-cyan-100 text-cyan-700 hover:bg-cyan-200"
-                onClick={() => handleChangeStatus("RESERVED")}
-                disabled={!appointment?.id || isBusy}
-              >
-                <Check className="mr-2 h-4 w-4" />
-                {appointmentStatusLabels.RESERVED}
-              </Button>
-            )}
-
-            {effectiveStatus !== "DEPOSIT_PAID" && !isCompleted && !isCanceled && (
-              <Button
-                variant="border border-teal-200 bg-teal-100 text-teal-700 hover:bg-teal-200"
-                onClick={() => handleChangeStatus("DEPOSIT_PAID")}
-                disabled={!appointment?.id || isBusy}
-              >
-                <Check className="mr-2 h-4 w-4" />
-                {appointmentStatusLabels.DEPOSIT_PAID}
-              </Button>
-            )}
-          </div>
-
-          <div className="flex gap-2">
-            <Button variant="secondary" onClick={onClose} disabled={isBusy}>
-              Cerrar
-            </Button>
-            <Button onClick={handleSubmit} disabled={!canSubmit}>
-              {updateMutation.isPending ? "Guardando..." : "Guardar cambios"}
-            </Button>
-          </div>
-        </div>
+        <FooterDetail 
+          canSubmit={canSubmit}
+          appointment={appointment}
+          showDepositInput={showDepositInput}
+          hasValidDepositAmount={hasValidDepositAmount}
+          handleChangeStatus={handleChangeStatus}
+          isCanceled={isCanceled}
+          statusMutation={statusMutation}
+          isBusy={isBusy}
+          isCompleted={isCompleted}
+          handleSubmit={handleSubmit}
+          updateMutation={updateMutation}
+          currentStatus={currentStatus}
+          effectiveStatus={effectiveStatus}
+          onClose={onClose}
+        />
       }
     >
       <div className="space-y-5">
         {appointment && (
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-800">
-                  Resumen del turno
-                </p>
-                <p className="mt-1 text-sm text-slate-600">
-                  {appointment.client.fullName} · {appointment.service.name} ·{" "}
-                  {format(parseISO(appointment.startAt), "dd/MM/yyyy HH:mm")}
-                </p>
-              </div>
+          <SummaryDetail
+            appointment={appointment}
+            effectiveStatus={effectiveStatus}
+            isCanceled={isCanceled}
+            isCompleted={isCompleted}
+          />
+        )}
 
-              <span
-                className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${currentStatusUi.badgeClasses}`}
-              >
-                {currentStatusUi.icon}
-                {currentStatusUi.label}
-              </span>
+        {showDepositInput && !isCompleted && !isCanceled && (
+          <div className="rounded-xl border border-teal-200 bg-teal-50 px-4 py-4">
+            <label className="mb-1.5 block text-sm font-medium text-slate-700">
+              Monto de seña
+            </label>
+
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={depositAmount}
+              onChange={(e) => {
+                setDepositAmount(e.target.value);
+                setDepositTouched(true);
+              }}
+              onBlur={() => setDepositTouched(true)}
+              placeholder="Ej: 5000"
+              disabled={isBusy}
+              className={`w-full rounded-lg border bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-teal-500 ${
+                shouldShowDepositError ? "border-red-300" : "border-slate-200"
+              }`}
+            />
+            <div className="mt-2 space-y-1">
+              <p className="text-xs text-slate-500">
+                Ingresá cuánto abonó el cliente para marcar el turno como señado.
+                {servicePrice > 0 && (
+                  <>
+                    {" "}El valor del servicio es{" "}
+                    <span className="font-medium text-slate-700">
+                      ${servicePrice.toLocaleString("es-AR")}
+                    </span>.
+                  </>
+                )}
+              </p>
+
+              {shouldShowDepositError && (
+                <p className="text-xs text-red-600">
+                  {isDepositGreaterThanService
+                    ? "La seña no puede ser mayor al valor del servicio."
+                    : "Tenés que ingresar una seña válida mayor a 0."}
+                </p>
+              )}
             </div>
-
-            {isCanceled && (
-              <p className="mt-3 text-xs text-red-600">
-                Este turno está cancelado. No se puede editar.
-              </p>
-            )}
-
-            {isCompleted && (
-              <p className="mt-3 text-xs text-emerald-700">
-                Este turno está completado. No se puede editar.
-              </p>
-            )}
           </div>
+          
         )}
 
         <div>

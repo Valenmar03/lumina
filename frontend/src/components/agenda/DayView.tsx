@@ -1,6 +1,6 @@
 import { parseISO } from "date-fns";
 import TimeLabel from "./TimeLabel";
-import AppointmentCard from "./AppointmentCard";
+import AppointmentCard from "../appointment/AppointmentCard";
 import type {
   AgendaAppointment,
   AppointmentStatus,

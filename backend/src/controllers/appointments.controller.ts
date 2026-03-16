@@ -49,28 +49,29 @@ export async function getAppointmentsHandler(req: Request, res: Response) {
 }
 
 export async function changeAppointmentStatusHandler(
-   req: Request,
-   res: Response,
+  req: Request,
+  res: Response,
 ) {
-   try {
-      const { id } = req.params;
-      const { status } = req.body;
+  try {
+    const { id } = req.params;
+    const { status, depositAmount } = req.body;
 
-      if (!status) {
-         return res.status(400).json({ error: "Missing status" });
-      }
+    if (!status) {
+      return res.status(400).json({ error: "Missing status" });
+    }
 
-      const updated = await appointmentService.changeStatus({
-         appointmentId: String(id),
-         status,
-      });
+    const updated = await appointmentService.changeStatus({
+      appointmentId: String(id),
+      status,
+      depositAmount,
+    });
 
-      return res.json(updated);
-   } catch (err: any) {
-      return res.status(err?.status ?? 500).json({
-         error: err?.message ?? "Server error",
-      });
-   }
+    return res.json(updated);
+  } catch (err: any) {
+    return res.status(err?.status ?? 500).json({
+      error: err?.message ?? "Server error",
+    });
+  }
 }
 
 export async function rescheduleAppointmentHandler(

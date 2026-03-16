@@ -186,6 +186,7 @@ export type UpdateProfessionalSchedulesPayload = {
 export type AgendaAppointment = {
   id: string;
   professionalId: string;
+  priceFinal?: number
   professional?: {
     id: string;
     name: string;
@@ -203,6 +204,8 @@ export type AgendaAppointment = {
   endAt: string;
   status?: AppointmentStatus;
   isPendingResolution?: boolean;
+  depositAmount?: number | string | null;
+  depositPaidAt?: string | null;
 };
 
 export type DailyAgendaResponse = {

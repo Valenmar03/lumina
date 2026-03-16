@@ -181,32 +181,77 @@ export class AppointmentService {
   async changeStatus(params: {
     appointmentId: string;
     status: "RESERVED" | "CANCELED" | "NO_SHOW" | "COMPLETED" | "DEPOSIT_PAID";
-    }) {
-    const { appointmentId, status } = params;
+    depositAmount?: number;
+  }) {
+    const { appointmentId, status, depositAmount } = params;
 
     const appointment = await prisma.appointment.findFirst({
-        where: {
+      where: {
         id: appointmentId,
         businessId: BUSINESS_ID,
-        },
+      },
     });
 
     if (!appointment) {
-        throw badRequest("Appointment not found");
+      throw badRequest("Appointment not found");
     }
 
-    // Regla: no volver a RESERVED desde COMPLETED
-    if (appointment.status === "COMPLETED" && (status === "RESERVED" || status === "DEPOSIT_PAID")) {
-        throw badRequest("Cannot revert a completed appointment");
+    // Regla: no volver a RESERVED/DEPOSIT_PAID desde COMPLETED
+    if (
+      appointment.status === "COMPLETED" &&
+      (status === "RESERVED" || status === "DEPOSIT_PAID")
+    ) {
+      throw badRequest("Cannot revert a completed appointment");
+    }
+
+    if (status === "DEPOSIT_PAID") {
+      if (depositAmount == null || Number.isNaN(Number(depositAmount))) {
+        throw badRequest("depositAmount is required when status is DEPOSIT_PAID");
+      }
+
+      const parsedDepositAmount = Number(depositAmount);
+
+      if (parsedDepositAmount <= 0) {
+        throw badRequest("depositAmount must be greater than 0");
+      }
+
+      if (appointment.priceFinal != null && parsedDepositAmount > Number(appointment.priceFinal)) {
+        throw badRequest("Deposit amount cannot be greater than appointment price");
+      }
+
+      const updated = await prisma.appointment.update({
+        where: { id: appointmentId },
+        data: {
+          status,
+          depositAmount: parsedDepositAmount,
+          depositPaidAt: new Date(),
+        },
+      });
+
+      return updated;
+    }
+
+    // Si vuelve a reservado, limpiamos la seña
+    if (status === "RESERVED") {
+      const updated = await prisma.appointment.update({
+        where: { id: appointmentId },
+        data: {
+          status,
+          depositAmount: 0,
+          depositPaidAt: null,
+        },
+      });
+
+      return updated;
     }
 
     const updated = await prisma.appointment.update({
-        where: { id: appointmentId },
-        data: { status },
+      where: { id: appointmentId },
+      data: { status },
     });
 
     return updated;
-    }
+  }
 
     async reschedule(params: { appointmentId: string; startAt: string }) {
         const { appointmentId, startAt } = params;

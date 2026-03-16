@@ -31,11 +31,12 @@ export function updateAppointment(data: {
 export function changeAppointmentStatus(data: {
   id: string;
   status: AppointmentStatus;
+  depositAmount?: number;
 }) {
-  const { id, status } = data;
+  const { id, status, depositAmount } = data;
 
   return apiFetch(`/appointments/${id}/status`, {
     method: "PATCH",
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status, depositAmount }),
   });
 }

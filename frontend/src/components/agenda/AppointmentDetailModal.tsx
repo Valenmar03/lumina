@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
+import type { ReactNode } from "react";
 import {
   AlertCircle,
   Check,
@@ -23,11 +24,10 @@ import { useProfessionals } from "../../hooks/useProfessionals";
 import { useProfessionalServices } from "../../hooks/useProfessionalServices";
 import { useAvailability } from "../../hooks/useAvailability";
 
-import type { AgendaAppointment } from "../../types/entities";
+import type { AgendaAppointment, AppointmentStatus, AppointmentStatus as EntityAppointmentStatus } from "../../types/entities";
 import {
   updateAppointment,
   changeAppointmentStatus,
-  type AppointmentStatus,
 } from "../../services/appointments.api";
 
 type Props = {
@@ -36,54 +36,71 @@ type Props = {
   appointment: AgendaAppointment | null;
 };
 
-function getStatusLabel(status?: AppointmentStatus | string) {
-  switch (status) {
-    case "CONFIRMED":
-      return "Confirmado";
-    case "CANCELED":
-      return "Cancelado";
-    case "NO_SHOW":
-      return "No asistió";
-    case "COMPLETED":
-      return "Realizado";
-    case "PENDING_RESOLUTION":
-        return "Pendiente";
-    default:
-      return "Sin estado";
-  }
-}
+type AppointmentDetailUiStatus = AppointmentStatus | "PENDING_RESOLUTION";
 
-function getStatusBadgeClasses(status?: AppointmentStatus | string) {
-  switch (status) {
-    case "CONFIRMED":
-      return "border-cyan-200 bg-cyan-50 text-cyan-700";
-    case "CANCELED":
-      return "border-red-200 bg-red-50 text-red-700";
-    case "NO_SHOW":
-      return "border-amber-200 bg-amber-50 text-amber-700";
-    case "COMPLETED":
-      return "border-emerald-200 bg-emerald-50 text-emerald-700";
-    case "PENDING_RESOLUTION":
-        return "border-violet-200 bg-violet-50 text-violet-700";
-    default:
-      return "border-slate-200 bg-slate-50 text-slate-700";
-  }
-}
+type ClientOption = {
+  id: string;
+  fullName: string;
+  phone?: string | null;
+  email?: string | null;
+};
 
-function getStatusIcon(status?: AppointmentStatus | string) {
+type StatusUi = {
+  label: string;
+  badgeClasses: string;
+  icon: ReactNode;
+};
+
+function getStatusUi(status?: AppointmentDetailUiStatus): StatusUi {
   switch (status) {
-    case "CONFIRMED":
-      return <Clock3 className="h-3.5 w-3.5" />;
+    case "RESERVED":
+      return {
+        label: "Reservado",
+        badgeClasses: "border-cyan-200 bg-cyan-50 text-cyan-700",
+        icon: <Clock3 className="h-3.5 w-3.5" />,
+      };
+
+    case "DEPOSIT_PAID":
+      return {
+        label: "Señado",
+        badgeClasses: "border-teal-200 bg-teal-50 text-teal-700",
+        icon: <Check className="h-3.5 w-3.5" />,
+      };
+
     case "CANCELED":
-      return <Trash2 className="h-3.5 w-3.5" />;
+      return {
+        label: "Cancelado",
+        badgeClasses: "border-red-200 bg-red-50 text-red-700",
+        icon: <Trash2 className="h-3.5 w-3.5" />,
+      };
+
     case "NO_SHOW":
-      return <UserX2 className="h-3.5 w-3.5" />;
+      return {
+        label: "No asistió",
+        badgeClasses: "border-amber-200 bg-amber-50 text-amber-700",
+        icon: <UserX2 className="h-3.5 w-3.5" />,
+      };
+
     case "COMPLETED":
-      return <CheckCircle2 className="h-3.5 w-3.5" />;
+      return {
+        label: "Realizado",
+        badgeClasses: "border-emerald-200 bg-emerald-50 text-emerald-700",
+        icon: <CheckCircle2 className="h-3.5 w-3.5" />,
+      };
+
     case "PENDING_RESOLUTION":
-        return <AlertCircle className="h-3.5 w-3.5" />;
+      return {
+        label: "Pendiente",
+        badgeClasses: "border-violet-200 bg-violet-50 text-violet-700",
+        icon: <AlertCircle className="h-3.5 w-3.5" />,
+      };
+
     default:
-      return <AlertCircle className="h-3.5 w-3.5" />;
+      return {
+        label: "Sin estado",
+        badgeClasses: "border-slate-200 bg-slate-50 text-slate-700",
+        icon: <AlertCircle className="h-3.5 w-3.5" />,
+      };
   }
 }
 
@@ -105,14 +122,19 @@ export default function AppointmentDetailModal({
 
   const clientBoxRef = useRef<HTMLDivElement | null>(null);
 
-    const effectiveStatus = appointment?.isPendingResolution
-    ? "PENDING_RESOLUTION"
-    : appointment?.status;
+  const currentStatus = appointment?.status as
+    | AppointmentStatus
+    | EntityAppointmentStatus
+    | undefined;
 
-    const currentStatus = appointment?.status as AppointmentStatus | undefined;
-    const isCanceled = currentStatus === "CANCELED";
-    const isCompleted = currentStatus === "COMPLETED";
-    const isLocked = isCanceled || isCompleted;
+  const effectiveStatus: AppointmentDetailUiStatus | undefined =
+    appointment?.isPendingResolution
+      ? "PENDING_RESOLUTION"
+      : (currentStatus as AppointmentStatus | undefined);
+
+  const isCanceled = currentStatus === "CANCELED";
+  const isCompleted = currentStatus === "COMPLETED";
+  const isLocked = isCanceled || isCompleted;
 
   const { data: clientsData, isLoading: clientsLoading } = useClients(clientSearch);
   const { data: professionalsData, isLoading: professionalsLoading } = useProfessionals();
@@ -275,12 +297,7 @@ export default function AppointmentDetailModal({
     });
   };
 
-  const handleSelectClient = (client: {
-    id: string;
-    fullName: string;
-    phone?: string | null;
-    email?: string | null;
-  }) => {
+  const handleSelectClient = (client: ClientOption) => {
     if (isFormDisabled) return;
     setClientId(client.id);
     setClientSearch(client.fullName);
@@ -324,9 +341,7 @@ export default function AppointmentDetailModal({
     [professionalServices]
   );
 
-    const currentStatusLabel = getStatusLabel(effectiveStatus);
-    const currentStatusBadgeClasses = getStatusBadgeClasses(effectiveStatus);
-    const currentStatusIcon = getStatusIcon(effectiveStatus);
+  const currentStatusUi = getStatusUi(effectiveStatus);
 
   return (
     <Modal
@@ -371,14 +386,25 @@ export default function AppointmentDetailModal({
               </Button>
             )}
 
-            {effectiveStatus !== "CONFIRMED" && !isCompleted && !isCanceled && (
+            {effectiveStatus !== "RESERVED" && !isCompleted && !isCanceled && (
               <Button
                 variant="border border-cyan-200 bg-cyan-100 text-cyan-700 hover:bg-cyan-200"
-                onClick={() => handleChangeStatus("CONFIRMED")}
+                onClick={() => handleChangeStatus("RESERVED")}
                 disabled={!appointment?.id || isBusy}
               >
                 <Check className="mr-2 h-4 w-4" />
-                Confirmar
+                Reservar
+              </Button>
+            )}
+
+            {effectiveStatus !== "DEPOSIT_PAID" && !isCompleted && !isCanceled && (
+              <Button
+                variant="border border-teal-200 bg-teal-100 text-teal-700 hover:bg-teal-200"
+                onClick={() => handleChangeStatus("DEPOSIT_PAID")}
+                disabled={!appointment?.id || isBusy}
+              >
+                <Check className="mr-2 h-4 w-4" />
+                Señado
               </Button>
             )}
           </div>
@@ -409,10 +435,10 @@ export default function AppointmentDetailModal({
               </div>
 
               <span
-                className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${currentStatusBadgeClasses}`}
+                className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${currentStatusUi.badgeClasses}`}
               >
-                {currentStatusIcon}
-                {currentStatusLabel}
+                {currentStatusUi.icon}
+                {currentStatusUi.label}
               </span>
             </div>
 

@@ -1,5 +1,5 @@
 import { format, parseISO } from "date-fns";
-import type { AgendaAppointment } from "../../types/entities";
+import type { AgendaAppointment, AppointmentStatus } from "../../types/entities";
 
 type Props = {
   appt: AgendaAppointment;
@@ -7,13 +7,34 @@ type Props = {
   onClick: (appointment: AgendaAppointment) => void;
 };
 
-function getStatusUi(status?: string) {
+type AppointmentUiStatus = AppointmentStatus | "PENDING_RESOLUTION";
+
+type StatusUi = {
+  dot: string;
+  badge: string;
+  label: string;
+  cardClass: string;
+  titleClass: string;
+  metaClass: string;
+};
+
+export function getStatusUi(status?: AppointmentUiStatus): StatusUi {
   switch (status) {
-    case "CONFIRMED":
+    case "RESERVED":
       return {
         dot: "bg-cyan-500",
         badge: "bg-cyan-100 text-cyan-700 border-cyan-200",
-        label: "Confirmado",
+        label: "Reservado",
+        cardClass: "",
+        titleClass: "text-slate-800",
+        metaClass: "text-slate-500",
+      };
+
+    case "DEPOSIT_PAID":
+      return {
+        dot: "bg-teal-500",
+        badge: "bg-teal-100 text-teal-700 border-teal-200",
+        label: "Señado",
         cardClass: "",
         titleClass: "text-slate-800",
         metaClass: "text-slate-500",
@@ -122,7 +143,7 @@ export default function MobileAppointmentCard({
           )}
         </div>
 
-        {effectiveStatus !== "CONFIRMED" && (
+        {effectiveStatus !== "RESERVED" && (
           <span
             className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium ${statusUi.badge}`}
           >

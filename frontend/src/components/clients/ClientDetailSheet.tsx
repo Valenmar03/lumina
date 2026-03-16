@@ -1,10 +1,11 @@
 import Sheet from "../ui/Sheet";
-import { Phone, Mail, Calendar, DollarSign, Hash, Clock3, Trash2, UserX2, CheckCircle2, AlertCircle, X } from "lucide-react";
+import { Phone, Mail, Calendar, DollarSign, Hash, Clock3, Trash2, UserX2, CheckCircle2, AlertCircle, X, Check } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 
-import type { Client } from "../../types/entities";
+import type { AppointmentStatus, Client } from "../../types/entities";
 import { useClientAppointments } from "../../hooks/useClients";
+import type { ReactNode } from "react";
 
 type Props = {
    open: boolean;
@@ -20,46 +21,65 @@ function getInitials(fullName: string) {
       .join("");
 }
 
-function formatStatus(status: string) {
-   switch (status) {
-      case "PENDING_RESOLUTION":
-         return {
-            label: "Pendiente",
-            className: "border-violet-200 bg-violet-50 text-violet-700",
-            icon: <AlertCircle className="h-3.5 w-3.5" />
-         };
-      case "CONFIRMED":
-         return {
-            label: "Confirmado",
-            className: "border-cyan-200 bg-cyan-50 text-cyan-700",
-            icon: <Clock3 className="h-3.5 w-3.5" />
-         };
-      case "COMPLETED":
-         return {
-            label: "Realizado",
-            className:
-               "border-emerald-200 bg-emerald-50 text-emerald-700",
-            icon: <CheckCircle2 className="h-3.5 w-3.5" />
-         };
-      case "CANCELED":
-         return {
-            label: "Cancelado",
-            className: "border-red-200 bg-red-50 text-red-700",
-            icon: <Trash2 className="h-3.5 w-3.5" />
-         };
-        case "NO_SHOW":
-            return {
-                label: "No asistió",
-                className: "border-amber-200 bg-amber-50 text-amber-700",
-                icon: <UserX2 className="h-3.5 w-3.5" />
-            }
-      default:
-         return {
-            label: "Sin estado",
-            className: "border-slate-200 bg-slate-50 text-slate-700",
-            icon: <AlertCircle className="h-3.5 w-3.5" />
-         };
-   }
+type AppointmentUiStatus = AppointmentStatus | "PENDING_RESOLUTION";
+
+type StatusFormat = {
+  label: string;
+  className: string;
+  icon: ReactNode;
+};
+
+export function formatStatus(status?: AppointmentUiStatus): StatusFormat {
+  switch (status) {
+    case "PENDING_RESOLUTION":
+      return {
+        label: "Pendiente",
+        className: "border-violet-200 bg-violet-50 text-violet-700",
+        icon: <AlertCircle className="h-3.5 w-3.5" />,
+      };
+
+    case "RESERVED":
+      return {
+        label: "Reservado",
+        className: "border-cyan-200 bg-cyan-50 text-cyan-700",
+        icon: <Clock3 className="h-3.5 w-3.5" />,
+      };
+
+    case "DEPOSIT_PAID":
+      return {
+        label: "Señado",
+        className: "border-teal-200 bg-teal-50 text-teal-700",
+        icon: <Check className="h-3.5 w-3.5" />,
+      };
+
+    case "COMPLETED":
+      return {
+        label: "Realizado",
+        className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+        icon: <CheckCircle2 className="h-3.5 w-3.5" />,
+      };
+
+    case "CANCELED":
+      return {
+        label: "Cancelado",
+        className: "border-red-200 bg-red-50 text-red-700",
+        icon: <Trash2 className="h-3.5 w-3.5" />,
+      };
+
+    case "NO_SHOW":
+      return {
+        label: "No asistió",
+        className: "border-amber-200 bg-amber-50 text-amber-700",
+        icon: <UserX2 className="h-3.5 w-3.5" />,
+      };
+
+    default:
+      return {
+        label: "Sin estado",
+        className: "border-slate-200 bg-slate-50 text-slate-700",
+        icon: <AlertCircle className="h-3.5 w-3.5" />,
+      };
+  }
 }
 
 export default function ClientDetailSheet({ open, onClose, client }: Props) {

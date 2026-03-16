@@ -3,6 +3,7 @@ import TimeLabel from "./TimeLabel";
 import AppointmentCard from "./AppointmentCard";
 import type {
   AgendaAppointment,
+  AppointmentStatus,
   Professional,
   ScheduleBlock,
 } from "../../types/entities";
@@ -27,8 +28,9 @@ type DayViewProps = {
   };
 };
 
-const STATUS_PRIORITY: Record<string, number> = {
-  CONFIRMED: 4,
+export const STATUS_PRIORITY: Record<AppointmentStatus, number> = {
+  RESERVED: 5,
+  DEPOSIT_PAID: 4,
   COMPLETED: 3,
   NO_SHOW: 2,
   CANCELED: 1,
@@ -43,8 +45,8 @@ function splitAppointmentsForDisplay(appointments: AgendaAppointment[]) {
   }
 
   const sorted = [...appointments].sort((a, b) => {
-    const aPriority = STATUS_PRIORITY[a.status ?? ""] ?? 0;
-    const bPriority = STATUS_PRIORITY[b.status ?? ""] ?? 0;
+    const aPriority = a.status ? STATUS_PRIORITY[a.status] : 0;
+    const bPriority = b.status ? STATUS_PRIORITY[b.status] : 0;
 
 const priorityDiff = bPriority - aPriority;
 
@@ -59,12 +61,18 @@ const priorityDiff = bPriority - aPriority;
   };
 }
 
-function getStatusBadge(status?: string) {
+function getStatusBadge(status?: AppointmentStatus) {
   switch (status) {
-    case "CONFIRMED":
+    case "RESERVED":
       return {
-        label: "Confirmado",
+        label: "Reservado",
         className: "bg-sky-100 text-sky-700",
+      };
+
+    case "DEPOSIT_PAID":
+      return {
+        label: "Señado",
+        className: "bg-teal-100 text-teal-700",
       };
 
     case "COMPLETED":
@@ -99,6 +107,7 @@ function getSecondaryBadge(appt: AgendaAppointment) {
           "bg-red-100 text-red-600 border border-red-200 hover:bg-red-200",
         titlePrefix: "Cancelado",
       };
+
     case "NO_SHOW":
       return {
         label: "N",
@@ -106,6 +115,7 @@ function getSecondaryBadge(appt: AgendaAppointment) {
           "bg-amber-100 text-amber-700 border border-amber-200 hover:bg-amber-200",
         titlePrefix: "No asistió",
       };
+
     case "COMPLETED":
       return {
         label: "✓",
@@ -113,13 +123,23 @@ function getSecondaryBadge(appt: AgendaAppointment) {
           "bg-emerald-100 text-emerald-700 border border-emerald-200 hover:bg-emerald-200",
         titlePrefix: "Completado",
       };
-    case "CONFIRMED":
+
+    case "DEPOSIT_PAID":
+      return {
+        label: "$",
+        className:
+          "bg-teal-100 text-teal-700 border border-teal-200 hover:bg-teal-200",
+        titlePrefix: "Señado",
+      };
+
+    case "RESERVED":
       return {
         label: "•",
         className:
           "bg-sky-100 text-sky-700 border border-sky-200 hover:bg-sky-200",
-        titlePrefix: "Confirmado",
+        titlePrefix: "Reservado",
       };
+
     default:
       return {
         label: "•",

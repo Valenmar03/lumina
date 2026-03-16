@@ -1,5 +1,10 @@
-import type { AgendaAppointment } from "../../types/entities";
 import { format, parseISO } from "date-fns";
+import type { CSSProperties } from "react";
+import {
+  AppointmentStatus,
+  appointmentStatusLabels,
+  type AgendaAppointment,
+} from "../../types/entities";
 
 type AppointmentCardProps = {
   appt: AgendaAppointment;
@@ -9,71 +14,83 @@ type AppointmentCardProps = {
   compact?: boolean;
   showProfessionalName?: boolean;
   onClick: (appt: AgendaAppointment) => void;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
 };
 
-function getStatusUi(status?: string) {
-  switch (status) {
-    case "CONFIRMED":
-      return {
-        dot: "bg-cyan-500",
-        badge: "bg-cyan-100 text-cyan-700 border-cyan-200",
-        label: "Confirmado",
-        cardClass: "",
-        titleClass: "text-slate-800",
-        metaClass: "text-slate-500",
-      };
+type AppointmentCardUiStatus = AppointmentStatus | "PENDING_RESOLUTION";
 
-    case "COMPLETED":
-      return {
-        dot: "bg-emerald-500",
-        badge: "bg-emerald-100 text-emerald-700 border-emerald-200",
-        label: "Realizado",
-        cardClass: "",
-        titleClass: "text-slate-800",
-        metaClass: "text-slate-500",
-      };
+type StatusUi = {
+  dot: string;
+  badge: string;
+  label: string;
+  cardClass: string;
+  titleClass: string;
+  metaClass: string;
+};
 
-    case "NO_SHOW":
-      return {
-        dot: "bg-amber-500",
-        badge: "bg-amber-100 text-amber-700 border-amber-200",
-        label: "No asistió",
-        cardClass: "",
-        titleClass: "text-slate-800",
-        metaClass: "text-slate-500",
-      };
+const defaultStatusUi: StatusUi = {
+  dot: "bg-slate-400",
+  badge: "bg-slate-100 text-slate-600 border-slate-200",
+  label: "Sin estado",
+  cardClass: "",
+  titleClass: "text-slate-800",
+  metaClass: "text-slate-500",
+};
 
-    case "CANCELED":
-      return {
-        dot: "bg-red-500",
-        badge: "bg-red-100 text-red-700 border-red-200",
-        label: "Cancelado",
-        cardClass: "opacity-60",
-        titleClass: "text-slate-500 line-through",
-        metaClass: "text-slate-400",
-      };
+const statusUiMap: Record<AppointmentCardUiStatus, StatusUi> = {
+  [AppointmentStatus.RESERVED]: {
+    dot: "bg-cyan-500",
+    badge: "bg-cyan-100 text-cyan-700 border-cyan-200",
+    label: appointmentStatusLabels[AppointmentStatus.RESERVED],
+    cardClass: "",
+    titleClass: "text-slate-800",
+    metaClass: "text-slate-500",
+  },
+  [AppointmentStatus.DEPOSIT_PAID]: {
+    dot: "bg-teal-500",
+    badge: "bg-teal-100 text-teal-700 border-teal-200",
+    label: appointmentStatusLabels[AppointmentStatus.DEPOSIT_PAID],
+    cardClass: "",
+    titleClass: "text-slate-800",
+    metaClass: "text-slate-500",
+  },
+  [AppointmentStatus.COMPLETED]: {
+    dot: "bg-emerald-500",
+    badge: "bg-emerald-100 text-emerald-700 border-emerald-200",
+    label: appointmentStatusLabels[AppointmentStatus.COMPLETED],
+    cardClass: "",
+    titleClass: "text-slate-800",
+    metaClass: "text-slate-500",
+  },
+  [AppointmentStatus.NO_SHOW]: {
+    dot: "bg-amber-500",
+    badge: "bg-amber-100 text-amber-700 border-amber-200",
+    label: appointmentStatusLabels[AppointmentStatus.NO_SHOW],
+    cardClass: "",
+    titleClass: "text-slate-800",
+    metaClass: "text-slate-500",
+  },
+  [AppointmentStatus.CANCELED]: {
+    dot: "bg-red-500",
+    badge: "bg-red-100 text-red-700 border-red-200",
+    label: appointmentStatusLabels[AppointmentStatus.CANCELED],
+    cardClass: "opacity-60",
+    titleClass: "text-slate-500 line-through",
+    metaClass: "text-slate-400",
+  },
+  PENDING_RESOLUTION: {
+    dot: "bg-violet-500",
+    badge: "bg-violet-100 text-violet-700 border-violet-200",
+    label: "Pendiente",
+    cardClass: "",
+    titleClass: "text-slate-800",
+    metaClass: "text-slate-500",
+  },
+};
 
-    case "PENDING_RESOLUTION":
-      return {
-        dot: "bg-violet-500",
-        badge: "bg-violet-100 text-violet-700 border-violet-200",
-        label: "Pendiente",
-        cardClass: "",
-        titleClass: "text-slate-800",
-        metaClass: "text-slate-500",
-      };
-
-    default:
-      return {
-        dot: "bg-slate-400",
-        badge: "bg-slate-100 text-slate-600 border-slate-200",
-        label: "Sin estado",
-        cardClass: "",
-        titleClass: "text-slate-800",
-        metaClass: "text-slate-500",
-      };
-  }
+export function getStatusUi(status?: AppointmentCardUiStatus): StatusUi {
+  if (!status) return defaultStatusUi;
+  return statusUiMap[status] ?? defaultStatusUi;
 }
 
 export default function AppointmentCard({
@@ -86,10 +103,10 @@ export default function AppointmentCard({
   onClick,
   style,
 }: AppointmentCardProps) {
-  
-  const effectiveStatus = appt.isPendingResolution
-    ? "PENDING_RESOLUTION"
-    : appt.status;
+
+  const effectiveStatus: AppointmentCardUiStatus | undefined = appt.isPendingResolution
+  ? "PENDING_RESOLUTION"
+  : (appt.status as AppointmentStatus | undefined);
 
   const statusUi = getStatusUi(effectiveStatus);
 

@@ -1,10 +1,5 @@
+import type { AppointmentStatus } from "../types/entities";
 import { apiFetch } from "./api";
-
-export type AppointmentStatus =
-  | "CONFIRMED"
-  | "CANCELED"
-  | "NO_SHOW"
-  | "COMPLETED";
 
 export function createAppointment(data: {
   professionalId: string;

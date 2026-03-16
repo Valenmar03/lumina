@@ -201,7 +201,7 @@ export type AgendaAppointment = {
   };
   startAt: string;
   endAt: string;
-  status?: string;
+  status?: AppointmentStatus;
   isPendingResolution?: boolean;
 };
 
@@ -229,4 +229,35 @@ export type WeeklyAgendaResponse = {
   scheduleBlocksByDay?: Record<string, ScheduleBlock[]>;
   scheduleBlocksByProfessional?: Record<string, ScheduleBlock[]>;
   appointments: AgendaAppointment[];
+};
+
+
+
+// APPOINTMENTS
+
+export const AppointmentStatus = {
+  RESERVED: "RESERVED",
+  DEPOSIT_PAID: "DEPOSIT_PAID",
+  CANCELED: "CANCELED",
+  NO_SHOW: "NO_SHOW",
+  COMPLETED: "COMPLETED",
+} as const;
+
+export type AppointmentStatus =
+  (typeof AppointmentStatus)[keyof typeof AppointmentStatus];
+
+export const appointmentStatusLabels: Record<AppointmentStatus, string> = {
+  [AppointmentStatus.RESERVED]: "Reservado",
+  [AppointmentStatus.DEPOSIT_PAID]: "Señado",
+  [AppointmentStatus.CANCELED]: "Cancelado",
+  [AppointmentStatus.NO_SHOW]: "No asistió",
+  [AppointmentStatus.COMPLETED]: "Completado",
+};
+
+export const appointmentStatusColors: Record<AppointmentStatus, string> = {
+  [AppointmentStatus.RESERVED]: "bg-blue-100 text-blue-700",
+  [AppointmentStatus.DEPOSIT_PAID]: "bg-amber-100 text-amber-700",
+  [AppointmentStatus.CANCELED]: "bg-red-100 text-red-700",
+  [AppointmentStatus.NO_SHOW]: "bg-slate-100 text-slate-700",
+  [AppointmentStatus.COMPLETED]: "bg-emerald-100 text-emerald-700",
 };

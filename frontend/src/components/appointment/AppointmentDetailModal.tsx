@@ -11,7 +11,7 @@ import { useProfessionals } from "../../hooks/useProfessionals";
 import { useProfessionalServices } from "../../hooks/useProfessionalServices";
 import { useAvailability } from "../../hooks/useAvailability";
 
-import { AppointmentStatus, appointmentStatusColors, type AgendaAppointment, type AppointmentUiStatus, type AppointmentStatus as EntityAppointmentStatus } from "../../types/entities";
+import { AppointmentStatus, type AgendaAppointment, type AppointmentUiStatus, type AppointmentStatus as EntityAppointmentStatus } from "../../types/entities";
 import {
   updateAppointment,
   changeAppointmentStatus,

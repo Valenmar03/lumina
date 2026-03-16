@@ -24,7 +24,7 @@ import { useProfessionals } from "../../hooks/useProfessionals";
 import { useProfessionalServices } from "../../hooks/useProfessionalServices";
 import { useAvailability } from "../../hooks/useAvailability";
 
-import type { AgendaAppointment, AppointmentStatus, AppointmentStatus as EntityAppointmentStatus } from "../../types/entities";
+import { AppointmentStatus, appointmentStatusLabels, type AgendaAppointment, type AppointmentUiStatus, type AppointmentStatus as EntityAppointmentStatus } from "../../types/entities";
 import {
   updateAppointment,
   changeAppointmentStatus,
@@ -35,8 +35,6 @@ type Props = {
   onClose: () => void;
   appointment: AgendaAppointment | null;
 };
-
-type AppointmentDetailUiStatus = AppointmentStatus | "PENDING_RESOLUTION";
 
 type ClientOption = {
   id: string;
@@ -51,57 +49,49 @@ type StatusUi = {
   icon: ReactNode;
 };
 
-function getStatusUi(status?: AppointmentDetailUiStatus): StatusUi {
-  switch (status) {
-    case "RESERVED":
-      return {
-        label: "Reservado",
-        badgeClasses: "border-cyan-200 bg-cyan-50 text-cyan-700",
-        icon: <Clock3 className="h-3.5 w-3.5" />,
-      };
+const statusUiMap: Record<AppointmentUiStatus, StatusUi> = {
+  RESERVED: {
+    label: appointmentStatusLabels.RESERVED,
+    badgeClasses: "border-cyan-200 bg-cyan-50 text-cyan-700",
+    icon: <Clock3 className="h-3.5 w-3.5" />,
+  },
+  DEPOSIT_PAID: {
+    label: appointmentStatusLabels.DEPOSIT_PAID,
+    badgeClasses: "border-teal-200 bg-teal-50 text-teal-700",
+    icon: <Check className="h-3.5 w-3.5" />,
+  },
+  CANCELED: {
+    label: appointmentStatusLabels.CANCELED,
+    badgeClasses: "border-red-200 bg-red-50 text-red-700",
+    icon: <Trash2 className="h-3.5 w-3.5" />,
+  },
+  NO_SHOW: {
+    label: appointmentStatusLabels.NO_SHOW,
+    badgeClasses: "border-amber-200 bg-amber-50 text-amber-700",
+    icon: <UserX2 className="h-3.5 w-3.5" />,
+  },
+  COMPLETED: {
+    label: appointmentStatusLabels.COMPLETED,
+    badgeClasses: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    icon: <CheckCircle2 className="h-3.5 w-3.5" />,
+  },
+  PENDING_RESOLUTION: {
+    label: appointmentStatusLabels.PENDING_RESOLUTION,
+    badgeClasses: "border-violet-200 bg-violet-50 text-violet-700",
+    icon: <AlertCircle className="h-3.5 w-3.5" />,
+  },
+};
 
-    case "DEPOSIT_PAID":
-      return {
-        label: "Señado",
-        badgeClasses: "border-teal-200 bg-teal-50 text-teal-700",
-        icon: <Check className="h-3.5 w-3.5" />,
-      };
-
-    case "CANCELED":
-      return {
-        label: "Cancelado",
-        badgeClasses: "border-red-200 bg-red-50 text-red-700",
-        icon: <Trash2 className="h-3.5 w-3.5" />,
-      };
-
-    case "NO_SHOW":
-      return {
-        label: "No asistió",
-        badgeClasses: "border-amber-200 bg-amber-50 text-amber-700",
-        icon: <UserX2 className="h-3.5 w-3.5" />,
-      };
-
-    case "COMPLETED":
-      return {
-        label: "Realizado",
-        badgeClasses: "border-emerald-200 bg-emerald-50 text-emerald-700",
-        icon: <CheckCircle2 className="h-3.5 w-3.5" />,
-      };
-
-    case "PENDING_RESOLUTION":
-      return {
-        label: "Pendiente",
-        badgeClasses: "border-violet-200 bg-violet-50 text-violet-700",
-        icon: <AlertCircle className="h-3.5 w-3.5" />,
-      };
-
-    default:
-      return {
-        label: "Sin estado",
-        badgeClasses: "border-slate-200 bg-slate-50 text-slate-700",
-        icon: <AlertCircle className="h-3.5 w-3.5" />,
-      };
+function getStatusUi(status?: AppointmentUiStatus): StatusUi {
+  if (!status) {
+    return {
+      label: "Sin estado",
+      badgeClasses: "border-slate-200 bg-slate-50 text-slate-700",
+      icon: <AlertCircle className="h-3.5 w-3.5" />,
+    };
   }
+
+  return statusUiMap[status];
 }
 
 export default function AppointmentDetailModal({
@@ -127,7 +117,7 @@ export default function AppointmentDetailModal({
     | EntityAppointmentStatus
     | undefined;
 
-  const effectiveStatus: AppointmentDetailUiStatus | undefined =
+  const effectiveStatus: AppointmentUiStatus | undefined =
     appointment?.isPendingResolution
       ? "PENDING_RESOLUTION"
       : (currentStatus as AppointmentStatus | undefined);
@@ -371,7 +361,7 @@ export default function AppointmentDetailModal({
                 disabled={!appointment?.id || isBusy}
               >
                 <UserX2 className="mr-2 h-4 w-4" />
-                No asistió
+                {appointmentStatusLabels.NO_SHOW}
               </Button>
             )}
 
@@ -382,7 +372,7 @@ export default function AppointmentDetailModal({
                 disabled={!appointment?.id || isBusy}
               >
                 <CheckCircle2 className="mr-2 h-4 w-4" />
-                Realizado
+                {appointmentStatusLabels.COMPLETED}
               </Button>
             )}
 
@@ -393,7 +383,7 @@ export default function AppointmentDetailModal({
                 disabled={!appointment?.id || isBusy}
               >
                 <Check className="mr-2 h-4 w-4" />
-                Reservar
+                {appointmentStatusLabels.RESERVED}
               </Button>
             )}
 
@@ -404,7 +394,7 @@ export default function AppointmentDetailModal({
                 disabled={!appointment?.id || isBusy}
               >
                 <Check className="mr-2 h-4 w-4" />
-                Señado
+                {appointmentStatusLabels.DEPOSIT_PAID}
               </Button>
             )}
           </div>

@@ -81,7 +81,7 @@ const statusUiMap: Record<AppointmentCardUiStatus, StatusUi> = {
   PENDING_RESOLUTION: {
     dot: "bg-violet-500",
     badge: "bg-violet-100 text-violet-700 border-violet-200",
-    label: "Pendiente",
+    label: appointmentStatusLabels.PENDING_RESOLUTION,
     cardClass: "",
     titleClass: "text-slate-800",
     metaClass: "text-slate-500",

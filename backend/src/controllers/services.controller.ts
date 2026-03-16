@@ -51,12 +51,13 @@ export async function getServiceByIdHandler(req: Request, res: Response) {
 
 export async function createServiceHandler(req: Request, res: Response) {
   try {
-    const { name, durationMin, basePrice, active } = req.body;
+    const { name, durationMin, basePrice, active, description } = req.body;
 
     const service = await serviceService.createService({
       name,
       durationMin: Number(durationMin),
       basePrice: Number(basePrice),
+      description,
       active,
     });
 

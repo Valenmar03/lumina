@@ -136,6 +136,7 @@ export class ServiceService {
         name,
         durationMin: data.durationMin,
         basePrice: data.basePrice,
+        description: data.description ?? "",
         active: data.active ?? true,
       },
     });

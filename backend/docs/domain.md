@@ -44,7 +44,7 @@ Para crear un turno se requiere:
 El sistema:
 - Calcula endAt = startAt + durationMin
 - priceFinal = basePrice
-- status = CONFIRMED
+- status = RESERVED
 
 ---
 
@@ -59,7 +59,7 @@ Un profesional NO puede tener turnos que se superpongan.
 Se considera solapamiento si:
 existing.startAt < newEndAt AND existing.endAt > newStartAt
 
-Solo bloquean turnos con status CONFIRMED.
+Solo bloquean turnos con status RESERVED y DEPOSIT_PAID.
 
 ### 3. Horario flexible
 Si el turno excede el horario configurado en ProfessionalSchedule:
@@ -69,12 +69,13 @@ Si el turno excede el horario configurado en ProfessionalSchedule:
 
 ### 4. Estados permitidos
 
-- CONFIRMED (default)
+- RESERVED (default)
 - CANCELED
 - NO_SHOW
 - COMPLETED
+- DEPOSIT_PAID
 
-No se permite volver a CONFIRMED desde COMPLETED.
+No se permite volver a RESERVED y DEPOSIT_PAID desde COMPLETED.
 
 ---
 

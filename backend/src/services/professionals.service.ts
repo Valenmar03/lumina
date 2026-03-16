@@ -325,7 +325,7 @@ export class ProfessionalService {
             where: {
             businessId: BUSINESS_ID,
             professionalId,
-            status: "CONFIRMED",
+            status: "RESERVED",
             startAt: {
                 gte: from.toJSDate(),
                 lt: to.toJSDate(),

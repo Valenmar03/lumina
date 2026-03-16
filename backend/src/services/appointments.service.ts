@@ -68,12 +68,12 @@ export class AppointmentService {
     });
     if (!link) throw badRequest("This professional does not perform this service");
 
-    // 4) No solapamiento (bloquea CONFIRMED)
+    // 4) No solapamiento (bloquea RESERVED)
     const overlapping = await prisma.appointment.findFirst({
       where: {
         businessId: BUSINESS_ID,
         professionalId,
-        status: "CONFIRMED",
+        status: "RESERVED",
         startAt: { lt: endDate },
         endAt: { gt: startDate },
       },
@@ -128,7 +128,7 @@ export class AppointmentService {
         startAt: startDate,
         endAt: endDate,
         priceFinal: service.basePrice,
-        status: "CONFIRMED",
+        status: "RESERVED",
       },
     });
 
@@ -168,7 +168,7 @@ export class AppointmentService {
 
     return appointments.map((appt) => {
       const isPendingResolution =
-        appt.status === "CONFIRMED" &&
+        appt.status === "RESERVED" &&
         appt.endAt.getTime() < Date.now();
 
       return {
@@ -180,7 +180,7 @@ export class AppointmentService {
 
   async changeStatus(params: {
     appointmentId: string;
-    status: "CONFIRMED" | "CANCELED" | "NO_SHOW" | "COMPLETED";
+    status: "RESERVED" | "CANCELED" | "NO_SHOW" | "COMPLETED" | "DEPOSIT_PAID";
     }) {
     const { appointmentId, status } = params;
 
@@ -195,8 +195,8 @@ export class AppointmentService {
         throw badRequest("Appointment not found");
     }
 
-    // Regla: no volver a CONFIRMED desde COMPLETED
-    if (appointment.status === "COMPLETED" && status === "CONFIRMED") {
+    // Regla: no volver a RESERVED desde COMPLETED
+    if (appointment.status === "COMPLETED" && (status === "RESERVED" || status === "DEPOSIT_PAID")) {
         throw badRequest("Cannot revert a completed appointment");
     }
 
@@ -223,8 +223,8 @@ export class AppointmentService {
         if (!appointment) throw badRequest("Appointment not found");
 
         // 2) Regla de estados
-        if (appointment.status !== "CONFIRMED") {
-            throw badRequest("Only CONFIRMED appointments can be rescheduled");
+        if (appointment.status !== "RESERVED") {
+            throw badRequest("Only RESERVED appointments can be rescheduled");
         }
 
         // 3) Recalcular endAt según duration del service
@@ -236,7 +236,7 @@ export class AppointmentService {
             where: {
             businessId: BUSINESS_ID,
             professionalId: appointment.professionalId,
-            status: "CONFIRMED",
+            status: "RESERVED",
             id: { not: appointmentId },
             startAt: { lt: newEnd },
             endAt: { gt: newStart },

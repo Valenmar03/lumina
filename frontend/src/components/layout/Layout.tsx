@@ -83,13 +83,13 @@ export function Layout() {
       )}
 
       <aside
-        className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-64 bg-white border-r border-slate-200 flex flex-col transition-transform duration-300 ${
+        className={`fixed lg:sticky top-0 left-0 z-50 h-dvh w-64 bg-white border-r border-slate-200 flex flex-col transition-transform duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         <div className="h-16 flex items-center px-5 border-b border-slate-100">
           <div className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="Caleio" className="w-8 h-8 object-contain" />
+            <img src="/logo.png" alt="Caleio" className="w-11 h-11 object-contain" />
             <span className="text-lg font-semibold text-slate-800 tracking-tight">
               Caleio
             </span>

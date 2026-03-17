@@ -1,6 +1,11 @@
 import { format, parseISO } from "date-fns";
 import { AlertCircle, Check, CheckCircle2, Clock3, Trash2, UserX2 } from "lucide-react";
-import { appointmentStatusLabels, type AgendaAppointment, type AppointmentUiStatus } from "../../types/entities";
+import {
+  appointmentStatusLabels,
+  paymentMethodOptions,
+  type AgendaAppointment,
+  type AppointmentUiStatus,
+} from "../../types/entities";
 import type { ReactNode } from "react";
 
 type StatusUi = {
@@ -55,66 +60,90 @@ function getStatusUi(status?: AppointmentUiStatus): StatusUi {
 }
 
 type Props = {
-    appointment: AgendaAppointment
-    effectiveStatus: AppointmentUiStatus  | undefined
-    isCanceled: boolean
-    isCompleted: boolean
-} 
-
+  appointment: AgendaAppointment;
+  effectiveStatus: AppointmentUiStatus | undefined;
+  isCanceled: boolean;
+  isCompleted: boolean;
+};
 
 export default function SummaryDetail({
-    appointment,
-    effectiveStatus,
-    isCanceled,
-    isCompleted
-} : Props) {
+  appointment,
+  effectiveStatus,
+  isCanceled,
+  isCompleted,
+}: Props) {
+  const currentStatusUi = getStatusUi(effectiveStatus);
 
-      const currentStatusUi = getStatusUi(effectiveStatus);
+  const depositMethodLabel = paymentMethodOptions.find(
+    (option) => option.value === appointment?.depositMethod
+  )?.label;
+
+  const finalPaymentMethodLabel = paymentMethodOptions.find(
+    (option) => option.value === appointment?.finalPaymentMethod
+  )?.label;
+
+  const totalPrice = Number(appointment.totalPrice ?? 0);
+  const depositAmount = Number(appointment.depositAmount ?? 0);
+  const remainingAmount = Math.max(totalPrice - depositAmount, 0);
+
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-                <p className="text-sm font-medium text-slate-800">
-                    Resumen del turno
-                </p>
-                <p className="text-sm text-slate-600">
-                    {appointment.client.fullName} · {appointment.service.name} ·{" "}
-                    {format(parseISO(appointment.startAt), "dd/MM/yyyy HH:mm")}
-                </p>
-                <div>
-                    <p className="mt-2 text-sm text-slate-600">
-                        Precio del Servicio: ${Number(appointment.totalPrice).toLocaleString("es-AR")}
-                    </p>
-                    {appointment?.depositAmount != null && Number(appointment.depositAmount) > 0 && (
-                        <p className="text-sm text-slate-600">
-                            Seña registrada:{" "}
-                            <span className="font-semibold text-teal-700">
-                            ${Number(appointment.depositAmount).toLocaleString("es-AR")}
-                            </span>
-                        </p>
-                    )}
-                </div>
-            </div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-sm font-medium text-slate-800">Resumen del turno</p>
 
-            <span
-            className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${currentStatusUi.badgeClasses}`}
-            >
-            {currentStatusUi.icon}
-            {currentStatusUi.label}
-            </span>
+          <p className="text-sm text-slate-600">
+            {appointment.client.fullName} · {appointment.service.name} ·{" "}
+            {format(parseISO(appointment.startAt), "dd/MM/yyyy HH:mm")}
+          </p>
+
+          <div className="mt-2 space-y-1">
+            <p className="text-sm text-slate-600">
+              Precio del servicio:{" "}
+              <span className="font-semibold text-slate-800">
+                ${totalPrice.toLocaleString("es-AR")}
+              </span>
+            </p>
+
+            {depositAmount > 0 && (
+              <p className="text-sm text-slate-600">
+                Seña registrada:{" "}
+                <span className="font-semibold text-teal-700">
+                  ${depositAmount.toLocaleString("es-AR")}
+                </span>
+                {depositMethodLabel && <> - {depositMethodLabel}</>}
+              </p>
+            )}
+
+            <p className="text-sm text-slate-600">
+              Saldo restante:{" "}
+              <span className="font-semibold text-emerald-700">
+                ${remainingAmount.toLocaleString("es-AR")}
+              </span>
+              {finalPaymentMethodLabel && <> - {finalPaymentMethodLabel}</>}
+            </p>
+          </div>
         </div>
 
-        {isCanceled && (
-            <p className="mt-3 text-xs text-red-600">
-            Este turno está cancelado. No se puede editar.
-            </p>
-        )}
+        <span
+          className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${currentStatusUi.badgeClasses}`}
+        >
+          {currentStatusUi.icon}
+          {currentStatusUi.label}
+        </span>
+      </div>
 
-        {isCompleted && (
-            <p className="mt-3 text-xs text-emerald-700">
-            Este turno está completado. No se puede editar.
-            </p>
-        )}
+      {isCanceled && (
+        <p className="mt-3 text-xs text-red-600">
+          Este turno está cancelado. No se puede editar.
+        </p>
+      )}
+
+      {isCompleted && (
+        <p className="mt-3 text-xs text-emerald-700">
+          Este turno está completado. No se puede editar.
+        </p>
+      )}
     </div>
-  )
+  );
 }

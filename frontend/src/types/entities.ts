@@ -282,7 +282,7 @@ type Option<T> = {
 
 export const paymentMethodOptions: Option<PaymentMethod>[] = [
   { value: "CASH", label: "Efectivo" },
-  { value: "TRANSFER", label: "Transferencia" },
   { value: "MERCADOPAGO", label: "Mercado Pago" },
+  { value: "TRANSFER", label: "Transferencia Bancaria" },
   { value: "OTHER", label: "Otro" },
 ];

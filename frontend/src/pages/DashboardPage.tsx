@@ -4,7 +4,6 @@ import {
   CalendarDays,
   DollarSign,
   UserCircle2,
-  Users,
 } from "lucide-react";
 
 import SectionCard from "../components/dashboard/SectionCard";

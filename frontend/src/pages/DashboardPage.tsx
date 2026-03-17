@@ -1,6 +1,5 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { format, isAfter, parseISO } from "date-fns";
-import { es } from "date-fns/locale";
 import {
   CalendarDays,
   DollarSign,
@@ -17,6 +16,7 @@ import DashboardSideSkeleton from "../components/dashboard/skeleton/DashboardSid
 import DashboardStatSkeleton from "../components/dashboard/skeleton/DashboardStatSkeleton";
 import UpcomingAppointmentsSkeleton from "../components/dashboard/skeleton/UpcomingAppointmentSkeleton";
 import RevenueBreakdownCard from "../components/dashboard/RevenueBreakDownCard";
+import DashboardDateNavigator from "../components/dashboard/DashboardDateNavigator";
 
 function getInitials(name: string) {
   return name
@@ -48,8 +48,9 @@ function formatCurrency(value: number) {
 }
 
 export default function DashboardPage() {
-  const currentDate = new Date();
-  const currentDateYMD = format(currentDate, "yyyy-MM-dd");
+  const [selectedDate, setSelectedDate] = useState(() =>
+    format(new Date(), "yyyy-MM-dd")
+  );
 
   const { data: clientsData, isLoading: clientsLoading } = useClients();
   const clients = clientsData?.clients ?? [];
@@ -63,11 +64,12 @@ export default function DashboardPage() {
 
   const { data: dailyAgenda, isLoading: dailyLoading } = useAgendaDaily(
     undefined,
-    currentDateYMD
+    selectedDate
   );
 
-
   const appointments = dailyAgenda?.appointments ?? [];
+
+  console.log(appointments)
 
   const dashboardData = useMemo(() => {
     const now = new Date();
@@ -148,7 +150,7 @@ export default function DashboardPage() {
       );
     });
 
-    const depositToday = completedAppointments.reduce(
+    const depositToday = normalizedAppointments.reduce(
       (acc, appt) => acc + Number(appt.depositAmount ?? 0),
       0
     );
@@ -223,21 +225,15 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-full space-y-6">
-      <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            Dashboard
-          </h1>
-          <p className="mt-0.5 text-sm text-slate-500">
-            {format(currentDate, "EEEE d 'de' MMMM, yyyy", { locale: es })}
-          </p>
-        </div>
-      </div>
+      <DashboardDateNavigator
+        value={selectedDate}
+        onChange={setSelectedDate}
+      />
       {
         isLoading? (
           <DashboardStatSkeleton />
         ) : (
-          <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
+          <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
             <StatCard
               title="Cobro de turnos hoy"
               value={isLoading ? "..." : formatCurrency(dashboardData.stats.revenueToday)}
@@ -258,15 +254,6 @@ export default function DashboardPage() {
             />
 
             <StatCard
-              title="Clientes"
-              value={isLoading ? "..." : dashboardData.stats.clients}
-              subtitle="Registrados"
-              icon={<UserCircle2 className="h-5 w-5" />}
-              iconBg="bg-amber-50"
-              iconColor="text-amber-600"
-            />
-
-            <StatCard
               title="Turnos hoy"
               value={dashboardData.stats.appointmentsToday}
               subtitle={
@@ -279,15 +266,15 @@ export default function DashboardPage() {
               iconColor="text-teal-600"
             />
 
-
             <StatCard
-              title="Profesionales"
-              value={isLoading ? "..." : dashboardData.stats.professionals}
-              subtitle="Equipo activo"
-              icon={<Users className="h-5 w-5" />}
-              iconBg="bg-violet-50"
-              iconColor="text-violet-600"
+              title="Clientes"
+              value={isLoading ? "..." : dashboardData.stats.clients}
+              subtitle="Registrados"
+              icon={<UserCircle2 className="h-5 w-5" />}
+              iconBg="bg-amber-50"
+              iconColor="text-amber-600"
             />
+
 
           </section>
         )

@@ -3,7 +3,6 @@ import { BanknoteArrowDown } from "lucide-react";
 type Props = {
   deposit: number;
   cash: number;
-  total: number;
   isLoading?: boolean;
 };
 
@@ -18,7 +17,6 @@ function formatCurrency(value: number) {
 export default function RevenueBreakdownCard({
   deposit,
   cash,
-  total,
   isLoading = false,
 }: Props) {
   return (
@@ -38,26 +36,17 @@ export default function RevenueBreakdownCard({
           ) : (
             <div className="mt-4 space-y-3 text-sm">
               <div className="flex items-center justify-between gap-3">
-                <span className="text-slate-500">Señas</span>
-                <span className="font-medium text-slate-700">
+                <span className="font-semibold text-slate-700 text-xl">
                   {formatCurrency(deposit)}
                 </span>
+                <span className="text-slate-500">Señas</span>
               </div>
 
               <div className="flex items-center justify-between gap-3">
-                <span className="text-slate-500">Caja</span>
-                <span className="font-medium text-slate-700">
+                <span className="font-semibold text-slate-700 text-xl">
                   {formatCurrency(cash)}
                 </span>
-              </div>
-
-              <div className="flex items-center justify-between gap-3 border-t border-slate-100 pt-2">
-                <span className="text-slate-600 font-medium">
-                  Seña + caja
-                </span>
-                <span className="font-semibold text-slate-900">
-                  {formatCurrency(total)}
-                </span>
+                <span className="text-slate-500">Caja</span>
               </div>
             </div>
           )}

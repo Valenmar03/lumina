@@ -104,7 +104,7 @@ export default function DashboardPage() {
         clientName: appt.client?.fullName ?? "Cliente sin nombre",
         serviceName: appt.service?.name ?? "Servicio",
         professionalName: appt.professional?.name ?? "Profesional",
-        color: appt.professional?.color ?? "#6CCC83" 
+        color: appt.professional?.color ?? "#6CCC83",
       }));
 
     const revenueToday = completedAppointments.reduce(
@@ -148,7 +148,6 @@ export default function DashboardPage() {
       );
     });
 
-
     const depositToday = completedAppointments.reduce(
       (acc, appt) => acc + Number(appt.depositAmount ?? 0),
       0
@@ -161,9 +160,35 @@ export default function DashboardPage() {
     }, 0);
 
     const totalToday = completedAppointments.reduce(
-      (acc, appt) => acc + Number(appt.totalPrice ?? 0),
+      (acc, appt) => acc + Number(appt.totalPrice ?? 0) - Number(appt.depositAmount),
       0
-);
+    );
+
+    const paymentMethodTotals = {
+      CASH: 0,
+      TRANSFER: 0,
+      MERCADOPAGO: 0,
+      OTHER: 0,
+    };
+
+    completedAppointments.forEach((appt) => {
+      const totalPrice = Number(appt.totalPrice ?? 0);
+      const deposit = Number(appt.depositAmount ?? 0);
+      const remaining = Math.max(totalPrice - deposit, 0);
+
+      if (remaining > 0 && appt.finalPaymentMethod) {
+        if (appt.finalPaymentMethod in paymentMethodTotals) {
+          paymentMethodTotals[appt.finalPaymentMethod as keyof typeof paymentMethodTotals] += remaining;
+        }
+      }
+    });
+
+    const paymentMethodsToday = [
+      { label: "Efectivo", amount: paymentMethodTotals.CASH },
+      { label: "Transferencia", amount: paymentMethodTotals.TRANSFER },
+      { label: "Mercado Pago", amount: paymentMethodTotals.MERCADOPAGO },
+      { label: "Otro", amount: paymentMethodTotals.OTHER },
+    ];
 
     const activeTeam = professionals
       .map((professional) => ({
@@ -184,8 +209,9 @@ export default function DashboardPage() {
         completedToday: completedAppointments.length,
         professionals: professionals.length,
         clients: clients.length,
-        revenueToday
+        revenueToday,
       },
+      paymentMethodsToday,
       upcomingAppointments,
       popularServices,
       activeTeam,
@@ -229,7 +255,15 @@ export default function DashboardPage() {
               isLoading={isLoading}
               deposit={dashboardData.stats.depositToday}
               cash={dashboardData.stats.cashToday}
-              total={dashboardData.stats.totalToday}
+            />
+
+            <StatCard
+              title="Clientes"
+              value={isLoading ? "..." : dashboardData.stats.clients}
+              subtitle="Registrados"
+              icon={<UserCircle2 className="h-5 w-5" />}
+              iconBg="bg-amber-50"
+              iconColor="text-amber-600"
             />
 
             <StatCard
@@ -255,14 +289,6 @@ export default function DashboardPage() {
               iconColor="text-violet-600"
             />
 
-            <StatCard
-              title="Clientes"
-              value={isLoading ? "..." : dashboardData.stats.clients}
-              subtitle="Registrados"
-              icon={<UserCircle2 className="h-5 w-5" />}
-              iconBg="bg-amber-50"
-              iconColor="text-amber-600"
-            />
           </section>
         )
       }
@@ -323,27 +349,38 @@ export default function DashboardPage() {
           <DashboardSideSkeleton />
           ) : (
             <div className="space-y-4">
-              <SectionCard title="Servicios populares">
+              <SectionCard title="Cierre de Caja">
                 {dashboardData.popularServices.length === 0 ? (
                   <div className="py-3 text-sm text-slate-400">
-                    No hay servicios con turnos hoy
+                    No hay turnos hoy
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {dashboardData.popularServices.map((service) => (
+                    {dashboardData.paymentMethodsToday.map((method) => (
                       <div
-                        key={service.name}
+                        key={method.label}
                         className="flex items-center justify-between gap-3"
                       >
                         <p className="text-sm font-medium text-slate-700">
-                          {service.name}
+                          {method.label}
                         </p>
 
-                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">
-                          {service.count} turnos
+                        <span className="font-semibold text-slate-700">
+                          {formatCurrency(method.amount)}
                         </span>
                       </div>
                     ))}
+                    <div
+                        className="flex items-center justify-between gap-3 border-t border-slate-300 pt-2"
+                      >
+                        <p className="text-sm font-medium text-slate-700">
+                          Total
+                        </p>
+
+                        <span className="font-semibold text-slate-700">
+                          {formatCurrency(dashboardData.stats.totalToday)}
+                        </span>
+                      </div>
                   </div>
                 )}
               </SectionCard>

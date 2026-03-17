@@ -80,7 +80,7 @@ const handleCloseNewClientModal = () => {
 
   return (
     <>
-      <div className="max-w-full mx-auto space-y-4">
+      <div className="max-w-full mx-auto space-y-4 overflow-x-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
@@ -153,29 +153,43 @@ const handleCloseNewClientModal = () => {
         </div>
 
         {clientsLoading ? (
-          <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
-            <div className="divide-y divide-slate-100">
-              {[...Array(6)].map((_, i) => (
-                <div
-                  key={i}
-                  className="grid grid-cols-12 gap-4 px-6 py-4 animate-pulse"
-                >
-                  <div className="col-span-4 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-slate-200" />
-                    <div className="space-y-2">
-                      <div className="h-4 w-36 rounded bg-slate-200" />
-                      <div className="h-3 w-24 rounded bg-slate-100" />
+          <>
+            <div className="hidden md:block rounded-2xl border border-slate-200 bg-white overflow-hidden">
+              <div className="divide-y divide-slate-100">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="grid grid-cols-12 gap-4 px-6 py-4 animate-pulse">
+                    <div className="col-span-4 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-slate-200" />
+                      <div className="space-y-2">
+                        <div className="h-4 w-36 rounded bg-slate-200" />
+                        <div className="h-3 w-24 rounded bg-slate-100" />
+                      </div>
+                    </div>
+                    <div className="col-span-2 h-4 w-28 rounded bg-slate-200 self-center" />
+                    <div className="col-span-3 h-4 w-36 rounded bg-slate-200 self-center" />
+                    <div className="col-span-1 h-4 w-8 rounded bg-slate-200 self-center" />
+                    <div className="col-span-1 h-4 w-16 rounded bg-slate-200 self-center" />
+                    <div className="col-span-1 h-4 w-14 rounded bg-slate-200 self-center" />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="md:hidden space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3 animate-pulse">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-slate-200 shrink-0" />
+                    <div className="space-y-2 flex-1">
+                      <div className="h-4 w-32 rounded bg-slate-200" />
+                      <div className="h-3 w-20 rounded bg-slate-100" />
                     </div>
                   </div>
-                  <div className="col-span-2 h-4 w-28 rounded bg-slate-200 self-center" />
-                  <div className="col-span-3 h-4 w-36 rounded bg-slate-200 self-center" />
-                  <div className="col-span-1 h-4 w-8 rounded bg-slate-200 self-center" />
-                  <div className="col-span-1 h-4 w-16 rounded bg-slate-200 self-center" />
-                  <div className="col-span-1 h-4 w-14 rounded bg-slate-200 self-center" />
+                  <div className="h-3 w-28 rounded bg-slate-100" />
+                  <div className="h-8 rounded-lg bg-slate-100" />
                 </div>
               ))}
             </div>
-          </div>
+          </>
         ) : clients.length === 0 ? (
           <div className="bg-white rounded-xl border border-slate-200 p-8 text-sm text-slate-500">
             No hay clientes cargados.
@@ -297,12 +311,12 @@ const handleCloseNewClientModal = () => {
                       </div>
                     </div>
 
-                    <div className="space-y-1 text-sm text-slate-600">
-                      <div className="flex items-center gap-2">
-                        <Phone className="w-4 h-4 text-slate-400" />
-                        <span>{client.phone}</span>
+                    <div className="space-y-1 text-sm text-slate-600 min-w-0 overflow-hidden">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Phone className="w-4 h-4 text-slate-400 shrink-0" />
+                        <span className="truncate">{client.phone}</span>
                       </div>
-                      <div>{client.email || "Sin email"}</div>
+                      <div className="truncate">{client.email || "Sin email"}</div>
                     </div>
 
                     <div className="flex items-center justify-between text-sm">

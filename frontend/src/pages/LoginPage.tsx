@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
-const API_URL = "http://localhost:3000";
+const API_URL = "/api";
 
 async function fetchBusinessName(slug: string): Promise<string | null> {
   try {

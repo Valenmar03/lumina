@@ -19,11 +19,9 @@ export type AuthContextValue = {
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
-const API_URL = "http://localhost:3000";
-
 async function fetchRefresh(): Promise<{ accessToken: string; user?: AuthUser } | null> {
   try {
-    const res = await fetch(`${API_URL}/auth/refresh`, {
+    const res = await fetch("/api/auth/refresh", {
       method: "POST",
       credentials: "include",
     });
@@ -45,18 +43,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Silent refresh on boot
   useEffect(() => {
+    let active = true;
     fetchRefresh().then((data) => {
+      if (!active) return;
       if (data) {
         setAccessToken(data.accessToken);
-        if (data.user) {
-          setUser(data.user);
-        }
+        if (data.user) setUser(data.user);
       }
-    }).finally(() => setIsLoading(false));
+      setIsLoading(false);
+    });
+    return () => { active = false; };
   }, []);
 
   const login = useCallback(async (slug: string, identifier: string, password: string) => {
-    const res = await fetch(`${API_URL}/auth/login`, {
+    const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     try {
-      await fetch(`${API_URL}/auth/logout`, {
+      await fetch("/api/auth/logout", {
         method: "POST",
         credentials: "include",
       });

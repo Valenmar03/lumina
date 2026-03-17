@@ -117,12 +117,13 @@ export async function login(
     throw Object.assign(new Error("Business not found"), { statusCode: 404 });
   }
 
-  // Find user by email or username within this business
+  // Find user by email (case-insensitive) or username within this business
+  const normalizedIdentifier = identifier.toLowerCase();
   const user = await prisma.user.findFirst({
     where: {
       businessId: business.id,
       OR: [
-        { email: identifier },
+        { email: { equals: normalizedIdentifier, mode: "insensitive" } },
         { username: identifier },
       ],
     },

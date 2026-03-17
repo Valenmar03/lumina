@@ -206,6 +206,8 @@ export type AgendaAppointment = {
   isPendingResolution?: boolean;
   depositAmount?: number | string | null;
   depositPaidAt?: string | null;
+  depositMethod?: PaymentMethod;
+  finalPaymentMethod?: PaymentMethod;
 };
 
 export type DailyAgendaResponse = {
@@ -270,3 +272,17 @@ export const appointmentStatusColors: Record<AppointmentUiStatus, string> = {
   [AppointmentStatus.COMPLETED]: "bg-emerald-100 text-emerald-700",
   PENDING_RESOLUTION: "bg-violet-100 text-violet-700",
 };
+
+export type PaymentMethod = "CASH" | "TRANSFER" | "MERCADOPAGO" | "OTHER"
+
+type Option<T> = {
+  value: T;
+  label: string;
+};
+
+export const paymentMethodOptions: Option<PaymentMethod>[] = [
+  { value: "CASH", label: "Efectivo" },
+  { value: "TRANSFER", label: "Transferencia" },
+  { value: "MERCADOPAGO", label: "Mercado Pago" },
+  { value: "OTHER", label: "Otro" },
+];

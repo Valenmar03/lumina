@@ -1,4 +1,4 @@
-import type { AppointmentStatus } from "../types/entities";
+import type { AppointmentStatus, PaymentMethod } from "../types/entities";
 import { apiFetch } from "./api";
 
 export function createAppointment(data: {
@@ -34,11 +34,24 @@ export function changeAppointmentStatus(data: {
   id: string;
   status: AppointmentStatus;
   depositAmount?: number;
+  depositMethod?: PaymentMethod;
+  finalPaymentMethod?: PaymentMethod;
 }) {
-  const { id, status, depositAmount } = data;
+  const {
+    id,
+    status,
+    depositAmount,
+    depositMethod,
+    finalPaymentMethod,
+  } = data;
 
   return apiFetch(`/appointments/${id}/status`, {
     method: "PATCH",
-    body: JSON.stringify({ status, depositAmount }),
+    body: JSON.stringify({
+      status,
+      depositAmount,
+      depositMethod,
+      finalPaymentMethod,
+    }),
   });
 }

@@ -11,7 +11,7 @@ import { useProfessionals } from "../../hooks/useProfessionals";
 import { useProfessionalServices } from "../../hooks/useProfessionalServices";
 import { useAvailability } from "../../hooks/useAvailability";
 
-import { AppointmentStatus, type AgendaAppointment, type AppointmentUiStatus, type AppointmentStatus as EntityAppointmentStatus } from "../../types/entities";
+import { AppointmentStatus, paymentMethodOptions, type AgendaAppointment, type AppointmentUiStatus, type AppointmentStatus as EntityAppointmentStatus, type PaymentMethod } from "../../types/entities";
 import {
   updateAppointment,
   changeAppointmentStatus,
@@ -54,7 +54,14 @@ export default function AppointmentDetailModal({
   const [selectedStartAt, setSelectedStartAt] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
 
+  
   const [depositAmount, setDepositAmount] = useState("");
+  const [depositMethod, setDepositMethod] = useState<PaymentMethod | "">("");
+  const [finalPaymentMethod, setFinalPaymentMethod] = useState<PaymentMethod | "">("");
+
+  const [showFinalPaymentInput, setShowFinalPaymentInput] = useState(false);
+  const [finalPaymentTouched, setFinalPaymentTouched] = useState(false);
+
   const [showDepositInput, setShowDepositInput] = useState(false);  
   const [depositTouched, setDepositTouched] = useState(false);
 
@@ -103,6 +110,10 @@ export default function AppointmentDetailModal({
       setShowDepositInput(false);
       setDepositTouched(false);
       setView("summary");
+      setDepositMethod("");
+      setFinalPaymentMethod("");
+      setShowFinalPaymentInput(false);
+      setFinalPaymentTouched(false);
       return;
     }
 
@@ -117,6 +128,10 @@ export default function AppointmentDetailModal({
     );
     setShowDepositInput(false);
     setDepositTouched(false);
+    setDepositMethod(appointment.depositMethod ?? "");
+    setFinalPaymentMethod(appointment.finalPaymentMethod ?? "");
+    setShowFinalPaymentInput(false);
+    setFinalPaymentTouched(false);
     setView("summary");
   }, [open, appointment]);
 
@@ -229,6 +244,14 @@ export default function AppointmentDetailModal({
   const shouldShowDepositError =
     showDepositInput && depositTouched && !hasValidDepositAmount;
 
+  const hasValidDepositMethod = depositMethod.trim() !== "";
+  const shouldShowDepositMethodError =
+    showDepositInput && depositTouched && !hasValidDepositMethod;
+
+  const hasValidFinalPaymentMethod = finalPaymentMethod.trim() !== "";
+  const shouldShowFinalPaymentMethodError =
+    showFinalPaymentInput && finalPaymentTouched && !hasValidFinalPaymentMethod;
+
   const canSubmit =
     !!appointment?.id &&
     !!selectedProfessionalId &&
@@ -301,41 +324,70 @@ export default function AppointmentDetailModal({
         });
      };
   
-     const handleChangeStatus = (status: AppointmentStatus) => {
-        if (!appointment?.id || isBusy) return;
-  
-        if (status === "DEPOSIT_PAID") {
-           if (!showDepositInput) {
-              setShowDepositInput(true);
-              setDepositTouched(false);
-              return;
-           }
-  
-           setDepositTouched(true);
-  
-           statusMutation.mutate({
-              id: appointment.id,
-              status,
-              depositAmount: parsedDepositAmount,
-           });
-  
-           return;
-        }
-  
-        const needsConfirm = status === "CANCELED";
-        if (needsConfirm) {
-           const confirmed = window.confirm(
-              "¿Seguro que querés cancelar este turno?",
-           );
-           if (!confirmed) return;
-        }
-  
-        statusMutation.mutate({
-           id: appointment.id,
-           status,
-        });
-     };
+    const handleChangeStatus = (status: AppointmentStatus) => {
+      if (!appointment?.id || isBusy) return;
 
+      if (status === "DEPOSIT_PAID") {
+        if (!showDepositInput) {
+          setShowDepositInput(true);
+          setShowFinalPaymentInput(false);
+          setDepositTouched(false);
+          return;
+        }
+
+        setDepositTouched(true);
+
+        if (!hasValidDepositAmount || !hasValidDepositMethod) {
+          return;
+        }
+
+        statusMutation.mutate({
+          id: appointment.id,
+          status,
+          depositAmount: parsedDepositAmount,
+          depositMethod: depositMethod || undefined,
+        });
+
+        return;
+      }
+
+      if (status === "COMPLETED") {
+        if (!showFinalPaymentInput) {
+          setShowFinalPaymentInput(true);
+          setShowDepositInput(false);
+          setFinalPaymentTouched(false);
+          return;
+        }
+
+        setFinalPaymentTouched(true);
+
+        if (!hasValidFinalPaymentMethod) {
+          return;
+        }
+
+        statusMutation.mutate({
+          id: appointment.id,
+          status,
+          finalPaymentMethod: finalPaymentMethod || undefined,
+        });
+
+        return;
+      }
+
+      const needsConfirm = status === "CANCELED";
+      if (needsConfirm) {
+        const confirmed = window.confirm("¿Seguro que querés cancelar este turno?");
+        if (!confirmed) return;
+      }
+
+      setShowDepositInput(false);
+      setShowFinalPaymentInput(false);
+
+      statusMutation.mutate({
+        id: appointment.id,
+        status,
+      });
+    };
 
   return (
     <Modal
@@ -381,6 +433,8 @@ export default function AppointmentDetailModal({
                   setView("status");
                   setShowDepositInput(false);
                   setDepositTouched(false);
+                  setShowFinalPaymentInput(false);
+                  setFinalPaymentTouched(false);
                 }}
                 variant={`flex-1 transition-all
                   ${
@@ -398,6 +452,8 @@ export default function AppointmentDetailModal({
                   setView("edit");
                   setShowDepositInput(false);
                   setDepositTouched(false);
+                  setShowFinalPaymentInput(false);
+                  setFinalPaymentTouched(false);
                 }}
                 variant={`flex-1 transition-all
                   ${
@@ -460,6 +516,24 @@ export default function AppointmentDetailModal({
               }`}
             />
 
+            <CustomSelect
+              label="Método de pago de la seña"
+              placeholder="Seleccionar método de pago"
+              value={depositMethod}
+              onChange={(value) => {
+                setDepositMethod(value as PaymentMethod | "");
+                setDepositTouched(true);
+              }}
+              options={paymentMethodOptions}
+              disabled={isBusy}
+            />
+
+            {shouldShowDepositMethodError && (
+              <p className="text-xs text-red-600">
+                Tenés que seleccionar un método de pago para la seña.
+              </p>
+            )}
+
             <div className="space-y-1">
               <p className="text-xs text-slate-500">
                 Ingresá cuánto abonó el cliente para marcar el turno como señado.
@@ -486,7 +560,7 @@ export default function AppointmentDetailModal({
             <div className="flex justify-end pt-1">
               <button
                 type="button"
-                disabled={!hasValidDepositAmount || isBusy}
+                disabled={!hasValidDepositAmount || !hasValidDepositMethod || isBusy}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && hasValidDepositAmount) {
                     handleChangeStatus(AppointmentStatus.DEPOSIT_PAID);
@@ -497,7 +571,7 @@ export default function AppointmentDetailModal({
                 }
                 className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors
                   ${
-                    hasValidDepositAmount && !isBusy
+                    hasValidDepositAmount && hasValidDepositMethod && !isBusy
                       ? "bg-teal-600 text-white hover:bg-teal-700"
                       : "bg-slate-200 text-slate-400 cursor-not-allowed"
                   }
@@ -507,6 +581,52 @@ export default function AppointmentDetailModal({
               </button>
             </div>
 
+          </div>
+        )}
+
+        {view === "status" && showFinalPaymentInput && !isCompleted && !isCanceled && (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-4 space-y-3">
+            <label className="block text-sm font-medium text-slate-700">
+              Método de pago del saldo
+            </label>
+
+            <CustomSelect
+              placeholder="Seleccionar método de pago"
+              value={finalPaymentMethod}
+              onChange={(value) => {
+                setFinalPaymentMethod(value as PaymentMethod | "");
+                setFinalPaymentTouched(true);
+              }}
+              options={paymentMethodOptions}
+              disabled={isBusy}
+            />
+
+            <div className="space-y-1">
+              <p className="text-xs text-slate-500">
+                Seleccioná cómo abonó el cliente el saldo restante para marcar el turno como realizado.
+              </p>
+
+              {shouldShowFinalPaymentMethodError && (
+                <p className="text-xs text-red-600">
+                  Tenés que seleccionar un método de pago final.
+                </p>
+              )}
+            </div>
+
+            <div className="flex justify-end pt-1">
+              <button
+                type="button"
+                disabled={!hasValidFinalPaymentMethod || isBusy}
+                onClick={() => handleChangeStatus(AppointmentStatus.COMPLETED)}
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                  hasValidFinalPaymentMethod && !isBusy
+                    ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                    : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                }`}
+              >
+                Confirmar realización
+              </button>
+            </div>
           </div>
         )}
 

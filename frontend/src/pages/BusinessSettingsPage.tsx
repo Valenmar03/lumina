@@ -120,7 +120,7 @@ function EditableField({
               <p className="text-xs text-slate-400">
                 URL de login:{" "}
                 <span className="font-mono text-slate-600">
-                  lumina.app/login/{displayDraft}
+                  caleio.app/login/{displayDraft}
                 </span>
               </p>
             )}
@@ -139,7 +139,7 @@ function EditableField({
             <p className="text-sm font-medium text-slate-800">{value}</p>
             {preview && (
               <p className="mt-0.5 text-xs text-slate-400 font-mono">
-                lumina.app/login/{value}
+                caleio.app/login/{value}
               </p>
             )}
             {hint && !preview && (
@@ -358,7 +358,7 @@ export default function BusinessSettingsPage() {
               </p>
               <div className="bg-white border border-teal-200 rounded-lg px-3 py-2">
                 <p className="text-xs font-mono text-slate-700 break-all">
-                  lumina.app/login/{business.slug}
+                  caleio.app/login/{business.slug}
                 </p>
               </div>
             </div>

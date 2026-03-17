@@ -35,7 +35,7 @@ function getPageTitle(pathname: string) {
     pathname.startsWith(route) && route !== "/"
   );
 
-  return matched?.[1] ?? "Lumina";
+  return matched?.[1] ?? "Caleio";
 }
 
 export function Layout() {
@@ -93,7 +93,7 @@ export function Layout() {
               <Calendar className="w-4 h-4 text-white" />
             </div>
             <span className="text-lg font-semibold text-slate-800 tracking-tight">
-              Lumina
+              Caleio
             </span>
           </div>
 
@@ -169,7 +169,7 @@ export function Layout() {
               <div className="w-6 h-6 rounded-md bg-teal-600 flex items-center justify-center">
                 <Calendar className="w-3 h-3 text-white" />
               </div>
-              <span className="font-semibold text-slate-800 text-sm">Lumina</span>
+              <span className="font-semibold text-slate-800 text-sm">Caleio</span>
             </div>
 
             <div className="hidden lg:block">

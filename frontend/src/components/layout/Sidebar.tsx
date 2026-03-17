@@ -5,7 +5,7 @@ export function Sidebar() {
     <aside className="w-64 bg-white border-r">
 
       <div className="p-6 font-bold text-lg">
-        Lumina
+        Caleio
       </div>
 
       <nav className="flex flex-col gap-2 p-4">

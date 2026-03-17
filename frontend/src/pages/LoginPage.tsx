@@ -64,7 +64,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold text-slate-800 tracking-tight">Lumina</h1>
+          <h1 className="text-2xl font-semibold text-slate-800 tracking-tight">Caleio</h1>
           <p className="text-sm text-slate-500 mt-1">Gestión de turnos</p>
         </div>
 
@@ -79,7 +79,7 @@ export default function LoginPage() {
                   </label>
                   <div className="flex items-center rounded-lg border border-slate-200 overflow-hidden focus-within:ring-2 focus-within:ring-teal-500">
                     <span className="px-3 py-2 text-sm text-slate-400 bg-slate-50 border-r border-slate-200 whitespace-nowrap">
-                      lumina.app/
+                      caleio.app/
                     </span>
                     <input
                       id="slug"

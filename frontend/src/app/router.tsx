@@ -6,7 +6,6 @@ import ProfessionalsPage from "../pages/ProfessionalsPage.tsx";
 import ServicesPage from "../pages/ServicesPage.tsx";
 import ClientsPage from "../pages/ClientsPage.tsx";
 import LoginPage from "../pages/LoginPage.tsx";
-import RegisterPage from "../pages/RegisterPage.tsx";
 import BusinessSettingsPage from "../pages/BusinessSettingsPage.tsx";
 import AnalyticsPage from "../pages/AnalyticsPage.tsx";
 import { useAuth } from "../hooks/useAuth.ts";
@@ -47,7 +46,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/register",
-    element: <RegisterPage />,
+    element: <Navigate to="/login" replace />,
   },
   {
     path: "/",

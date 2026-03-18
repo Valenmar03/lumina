@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { X } from "lucide-react";
 
 type ModalSize = "sm" | "md" | "lg" | "xl";
@@ -35,6 +35,14 @@ export default function Modal({
 }: ModalProps) {
   const [mounted, setMounted] = useState(open);
   const [visible, setVisible] = useState(open);
+
+  // Freeze content during close animation so empty-prop flashes don't show
+  const frozenChildren = useRef<ReactNode>(children);
+  const frozenFooter = useRef<ReactNode>(footer);
+  if (visible) {
+    frozenChildren.current = children;
+    frozenFooter.current = footer;
+  }
 
   useEffect(() => {
     if (open) {
@@ -116,12 +124,12 @@ export default function Modal({
             )}
 
             <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
-              {children}
+              {frozenChildren.current}
             </div>
 
-            {footer && (
+            {frozenFooter.current && (
               <div className="shrink-0 border-t border-slate-100 bg-slate-50 px-4 py-4 sm:px-6">
-                {footer}
+                {frozenFooter.current}
               </div>
             )}
           </div>

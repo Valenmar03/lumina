@@ -36,10 +36,18 @@ export const STATUS_PRIORITY: Record<AppointmentStatus, number> = {
   CANCELED: 1,
 };
 
+function doAppointmentsOverlap(a: AgendaAppointment, b: AgendaAppointment): boolean {
+  const aStart = parseISO(a.startAt).getTime();
+  const aEnd = parseISO(a.endAt).getTime();
+  const bStart = parseISO(b.startAt).getTime();
+  const bEnd = parseISO(b.endAt).getTime();
+  return aStart < bEnd && bStart < aEnd;
+}
+
 function splitAppointmentsForDisplay(appointments: AgendaAppointment[]) {
   if (appointments.length === 0) {
     return {
-      primaryAppointment: null as AgendaAppointment | null,
+      primaryAppointments: [] as AgendaAppointment[],
       secondaryAppointments: [] as AgendaAppointment[],
     };
   }
@@ -47,56 +55,24 @@ function splitAppointmentsForDisplay(appointments: AgendaAppointment[]) {
   const sorted = [...appointments].sort((a, b) => {
     const aPriority = a.status ? STATUS_PRIORITY[a.status] : 0;
     const bPriority = b.status ? STATUS_PRIORITY[b.status] : 0;
-
-const priorityDiff = bPriority - aPriority;
-
+    const priorityDiff = bPriority - aPriority;
     if (priorityDiff !== 0) return priorityDiff;
-
     return parseISO(a.startAt).getTime() - parseISO(b.startAt).getTime();
   });
 
+  const primary = sorted[0];
+  const rest = sorted.slice(1);
+
+  // Only appointments that truly overlap with the primary become bubbles
+  const secondaryAppointments = rest.filter((appt) => doAppointmentsOverlap(primary, appt));
+  const nonOverlapping = rest.filter((appt) => !doAppointmentsOverlap(primary, appt));
+
   return {
-    primaryAppointment: sorted[0] ?? null,
-    secondaryAppointments: sorted.slice(1),
+    primaryAppointments: [primary, ...nonOverlapping],
+    secondaryAppointments,
   };
 }
 
-function getStatusBadge(status?: AppointmentStatus) {
-  switch (status) {
-    case "RESERVED":
-      return {
-        label: "Reservado",
-        className: "bg-sky-100 text-sky-700",
-      };
-
-    case "DEPOSIT_PAID":
-      return {
-        label: "Señado",
-        className: "bg-teal-100 text-teal-700",
-      };
-
-    case "COMPLETED":
-      return {
-        label: "Completado",
-        className: "bg-emerald-100 text-emerald-700",
-      };
-
-    case "NO_SHOW":
-      return {
-        label: "No asistió",
-        className: "bg-amber-100 text-amber-700",
-      };
-
-    case "CANCELED":
-      return {
-        label: "Cancelado",
-        className: "bg-red-100 text-red-700",
-      };
-
-    default:
-      return null;
-  }
-}
 
 function getSecondaryBadge(appt: AgendaAppointment) {
   switch (appt.status) {
@@ -260,7 +236,7 @@ export default function DayView({
                   );
                 });
 
-                const { primaryAppointment, secondaryAppointments } =
+                const { primaryAppointments, secondaryAppointments } =
                   splitAppointmentsForDisplay(hourAppointments);
 
                 return (
@@ -275,18 +251,16 @@ export default function DayView({
                       )
                     }
                   >
-                    {primaryAppointment && (
+                    {primaryAppointments.map((appt) => (
                       <AppointmentCard
-                        key={primaryAppointment.id}
-                        appt={primaryAppointment}
+                        key={appt.id}
+                        appt={appt}
                         color={professional.color || "#0D9488"}
-                        top={getAppointmentTopAndHeight(primaryAppointment).top}
-                        height={
-                          getAppointmentTopAndHeight(primaryAppointment).height
-                        }
+                        top={getAppointmentTopAndHeight(appt).top}
+                        height={getAppointmentTopAndHeight(appt).height}
                         onClick={handleAppointmentClick}
                       />
-                    )}
+                    ))}
 
                     {renderSecondaryBubbles(
                       secondaryAppointments,
@@ -353,7 +327,7 @@ export default function DayView({
             return start.getHours() === hour;
           });
 
-          const { primaryAppointment, secondaryAppointments } =
+          const { primaryAppointments, secondaryAppointments } =
             splitAppointmentsForDisplay(hourAppointments);
 
           return (
@@ -374,72 +348,16 @@ export default function DayView({
                   )
                 }
               >
-                {primaryAppointment && (() => {
-                  const { top, height } =
-                    getAppointmentTopAndHeight(primaryAppointment);
-
-                  const color = primaryAppointment.professional?.color || "#0D9488";
-
-                  return (
-                    <div
-                      key={primaryAppointment.id}
-                      className="absolute left-1 right-8 rounded-md px-2 py-1 text-xs z-10 overflow-hidden border-l-[3px] hover:shadow-md transition-shadow cursor-pointer"
-                      style={{
-                        top: `${top}px`,
-                        height: `${height}px`,
-                        borderLeftColor: `${color}`,
-                        backgroundColor:  `${color}18`,
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAppointmentClick(primaryAppointment);
-                      }}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="font-medium text-slate-800 truncate leading-tight">
-                          {primaryAppointment.client.fullName}
-                        </p>
-
-                        {(() => {
-                          const badge = getStatusBadge(primaryAppointment.status);
-
-                          if (!badge) return null;
-
-                          return (
-                            <span
-                              className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${badge.className}`}
-                            >
-                              {badge.label}
-                            </span>
-                          );
-                        })()}
-                      </div>
-
-                      {height > 32 && (
-                        <>
-                          <p className="text-slate-500 truncate leading-tight">
-                            {primaryAppointment.service.name}
-                          </p>
-                          <p className="text-slate-500 truncate leading-tight">
-                            {parseISO(
-                              primaryAppointment.startAt,
-                            ).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}{" "}
-                            -{" "}
-                            {parseISO(
-                              primaryAppointment.endAt,
-                            ).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  );
-                })()}
+                {primaryAppointments.map((appt) => (
+                  <AppointmentCard
+                    key={appt.id}
+                    appt={appt}
+                    color={appt.professional?.color || "#0D9488"}
+                    top={getAppointmentTopAndHeight(appt).top}
+                    height={getAppointmentTopAndHeight(appt).height}
+                    onClick={handleAppointmentClick}
+                  />
+                ))}
 
                 {renderSecondaryBubbles(
                   secondaryAppointments,

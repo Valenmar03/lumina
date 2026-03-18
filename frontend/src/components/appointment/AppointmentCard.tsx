@@ -179,6 +179,7 @@ export default function AppointmentCard({
           <span className={`shrink-0 text-[10px] ${statusUi.metaClass}`}>
             {format(parseISO(appt.startAt), "HH:mm")}–{format(parseISO(appt.endAt), "HH:mm")}
           </span>
+          <span className="shrink-0 text-[10px] text-slate-300">·</span>
           <span
             className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${statusUi.badge}`}
           >

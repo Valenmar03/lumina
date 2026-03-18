@@ -231,7 +231,7 @@ export class ProfessionalService {
       where: {
         businessId,
         professionalId,
-        status: "RESERVED",
+        status: { in: ["RESERVED", "DEPOSIT_PAID"] },
         startAt: { gte: from.toJSDate(), lt: to.toJSDate() },
       },
       orderBy: { startAt: "asc" },

@@ -72,7 +72,7 @@ export class AppointmentService {
       where: {
         businessId,
         professionalId,
-        status: "RESERVED",
+        status: { in: ["RESERVED", "DEPOSIT_PAID"] },
         startAt: { lt: endDate },
         endAt: { gt: startDate },
       },
@@ -262,7 +262,7 @@ export class AppointmentService {
       where: {
         businessId,
         professionalId,
-        status: "RESERVED",
+        status: { in: ["RESERVED", "DEPOSIT_PAID"] },
         id: { not: appointmentId },
         startAt: { lt: endDate },
         endAt: { gt: startDate },
@@ -344,7 +344,7 @@ export class AppointmentService {
       where: {
         businessId,
         professionalId: appointment.professionalId,
-        status: "RESERVED",
+        status: { in: ["RESERVED", "DEPOSIT_PAID"] },
         id: { not: appointmentId },
         startAt: { lt: newEnd },
         endAt: { gt: newStart },

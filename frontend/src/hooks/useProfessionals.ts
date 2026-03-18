@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getProfessionals,createProfessional, updateProfessional } from "../services/professionals.api";
+import { getProfessionals, createProfessional, updateProfessional, getProfessionalUnavailabilities, createProfessionalUnavailability, deleteProfessionalUnavailability } from "../services/professionals.api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export function useProfessionals() {
@@ -42,6 +42,35 @@ export function useUpdateProfessional() {
       queryClient.invalidateQueries({
         queryKey: ["professional-schedule", variables.professionalId],
       });
+    },
+  });
+}
+
+export function useProfessionalUnavailabilities(professionalId: string) {
+  return useQuery({
+    queryKey: ["professional-unavailabilities", professionalId],
+    queryFn: () => getProfessionalUnavailabilities({ professionalId }),
+    enabled: !!professionalId,
+  });
+}
+
+export function useCreateUnavailability(professionalId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (params: { startAt: string; endAt: string; reason?: string; cancelConflicting?: boolean }) =>
+      createProfessionalUnavailability({ professionalId, ...params }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["professional-unavailabilities", professionalId] });
+    },
+  });
+}
+
+export function useDeleteUnavailability(professionalId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteProfessionalUnavailability({ professionalId, id }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["professional-unavailabilities", professionalId] });
     },
   });
 }

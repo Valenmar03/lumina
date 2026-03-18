@@ -55,6 +55,7 @@ model Business {
   appointments  Appointment[]
   schedules     ProfessionalSchedule[]
   professionalServices ProfessionalService[]
+  professionalUnavailabilities ProfessionalUnavailability[]
 
   @@index([createdAt])
 }
@@ -103,6 +104,7 @@ model Professional {
   schedules            ProfessionalSchedule[]
   appointments         Appointment[]
   professionalServices ProfessionalService[]
+  unavailabilities     ProfessionalUnavailability[]
 
   @@index([businessId])
 }
@@ -126,6 +128,22 @@ model ProfessionalSchedule {
 
   @@index([businessId])
   @@index([professionalId, dayOfWeek])
+}
+
+model ProfessionalUnavailability {
+  id             String   @id @default(uuid())
+  businessId     String
+  professionalId String
+  startAt        DateTime
+  endAt          DateTime
+  reason         String?
+  createdAt      DateTime @default(now())
+
+  business     Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  professional Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+
+  @@index([professionalId, startAt])
+  @@index([businessId])
 }
 
 model Service {

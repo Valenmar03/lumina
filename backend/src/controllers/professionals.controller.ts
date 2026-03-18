@@ -157,6 +157,74 @@ export async function createProfessionalAccountHandler(req: Request, res: Respon
   }
 }
 
+export async function getProfessionalUnavailabilitiesHandler(req: Request, res: Response) {
+  try {
+    const { businessId } = req.user!;
+    const { id } = req.params;
+
+    const unavailabilities = await professionalService.getUnavailabilities({
+      businessId,
+      professionalId: String(id),
+    });
+
+    return res.json({ unavailabilities });
+  } catch (err: any) {
+    return res.status(err?.status ?? 500).json({ error: err?.message ?? "Server error" });
+  }
+}
+
+export async function createProfessionalUnavailabilityHandler(req: Request, res: Response) {
+  try {
+    const { businessId } = req.user!;
+    const { id } = req.params;
+    const { startAt, endAt, reason, cancelConflicting } = req.body;
+
+    if (!startAt || !endAt) {
+      return res.status(400).json({ error: "startAt and endAt are required" });
+    }
+
+    const startDate = new Date(startAt);
+    const endDate = new Date(endAt);
+
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return res.status(400).json({ error: "Invalid date format" });
+    }
+
+    const unavailability = await professionalService.createUnavailability({
+      businessId,
+      professionalId: String(id),
+      startAt: startDate,
+      endAt: endDate,
+      reason,
+      cancelConflicting: cancelConflicting === undefined ? undefined : Boolean(cancelConflicting),
+    });
+
+    return res.status(201).json({ unavailability });
+  } catch (err: any) {
+    if (err?.status === 409 && err?.conflicts) {
+      return res.status(409).json({ error: "CONFLICTING_APPOINTMENTS", conflicts: err.conflicts });
+    }
+    return res.status(err?.status ?? 500).json({ error: err?.message ?? "Server error" });
+  }
+}
+
+export async function deleteProfessionalUnavailabilityHandler(req: Request, res: Response) {
+  try {
+    const { businessId } = req.user!;
+    const { id, unavailabilityId } = req.params;
+
+    await professionalService.deleteUnavailability({
+      businessId,
+      professionalId: String(id),
+      id: String(unavailabilityId),
+    });
+
+    return res.status(204).send();
+  } catch (err: any) {
+    return res.status(err?.status ?? 500).json({ error: err?.message ?? "Server error" });
+  }
+}
+
 export async function getProfessionalAvailabilityHandler(req: Request, res: Response) {
   try {
     const { businessId } = req.user!;

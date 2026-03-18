@@ -237,6 +237,15 @@ export class ProfessionalService {
       orderBy: { startAt: "asc" },
     });
 
+    const unavailabilities = await prisma.professionalUnavailability.findMany({
+      where: {
+        businessId,
+        professionalId,
+        startAt: { lt: to.toJSDate() },
+        endAt:   { gt: from.toJSDate() },
+      },
+    });
+
     const durationMin = service.durationMin;
     const slots: { startAt: string; endAt: string; label: string }[] = [];
 
@@ -257,7 +266,13 @@ export class ProfessionalService {
           return apptStart < slotEnd && apptEnd > slotStart;
         });
 
-        if (!overlaps) {
+        const blocked = unavailabilities.some((u) => {
+          const uStart = DateTime.fromJSDate(u.startAt, { zone: TZ });
+          const uEnd   = DateTime.fromJSDate(u.endAt,   { zone: TZ });
+          return uStart < slotEnd && uEnd > slotStart;
+        });
+
+        if (!overlaps && !blocked) {
           slots.push({
             startAt: slotStart.toISO()!,
             endAt: slotEnd.toISO()!,
@@ -270,6 +285,82 @@ export class ProfessionalService {
     }
 
     return { date, professionalId, serviceId, stepMin, slots };
+  }
+
+  async getUnavailabilities(params: { businessId: string; professionalId: string }) {
+    const { businessId, professionalId } = params;
+    return prisma.professionalUnavailability.findMany({
+      where: { businessId, professionalId },
+      orderBy: { startAt: "asc" },
+    });
+  }
+
+  async createUnavailability(params: {
+    businessId: string;
+    professionalId: string;
+    startAt: Date;
+    endAt: Date;
+    reason?: string;
+    cancelConflicting?: boolean;
+  }) {
+    const { businessId, professionalId, startAt, endAt, reason, cancelConflicting } = params;
+
+    const professional = await prisma.professional.findFirst({
+      where: { id: professionalId, businessId },
+    });
+    if (!professional) throw badRequest("Professional not found");
+
+    if (startAt >= endAt) throw badRequest("startAt must be before endAt");
+
+    const conflicting = await prisma.appointment.findMany({
+      where: {
+        businessId,
+        professionalId,
+        status: { in: ["RESERVED", "DEPOSIT_PAID"] },
+        startAt: { lt: endAt },
+        endAt: { gt: startAt },
+      },
+      select: {
+        id: true,
+        startAt: true,
+        endAt: true,
+        client: { select: { fullName: true } },
+        service: { select: { name: true } },
+      },
+    });
+
+    if (conflicting.length > 0 && cancelConflicting === undefined) {
+      const err = new Error("CONFLICTING_APPOINTMENTS") as Error & { status?: number; conflicts?: typeof conflicting };
+      err.status = 409;
+      err.conflicts = conflicting;
+      throw err;
+    }
+
+    if (cancelConflicting === true && conflicting.length > 0) {
+      await prisma.appointment.updateMany({
+        where: { id: { in: conflicting.map((a) => a.id) } },
+        data: { status: "CANCELED" },
+      });
+    }
+
+    return prisma.professionalUnavailability.create({
+      data: { businessId, professionalId, startAt, endAt, reason: reason ?? null },
+    });
+  }
+
+  async deleteUnavailability(params: {
+    businessId: string;
+    professionalId: string;
+    id: string;
+  }) {
+    const { businessId, professionalId, id } = params;
+
+    const record = await prisma.professionalUnavailability.findFirst({
+      where: { id, businessId, professionalId },
+    });
+    if (!record) throw badRequest("Unavailability not found");
+
+    await prisma.professionalUnavailability.delete({ where: { id } });
   }
 
   async createProfessionalAccount(params: {

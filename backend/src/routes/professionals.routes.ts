@@ -9,6 +9,9 @@ import {
   replaceProfessionalServicesHandler,
   getProfessionalAvailabilityHandler,
   createProfessionalAccountHandler,
+  getProfessionalUnavailabilitiesHandler,
+  createProfessionalUnavailabilityHandler,
+  deleteProfessionalUnavailabilityHandler,
 } from "../controllers/professionals.controller";
 
 const router = Router();
@@ -25,5 +28,9 @@ router.put("/:id/services", replaceProfessionalServicesHandler);
 
 router.get("/:id/availability", getProfessionalAvailabilityHandler);
 router.post("/:id/account", createProfessionalAccountHandler);
+
+router.get("/:id/unavailabilities", getProfessionalUnavailabilitiesHandler);
+router.post("/:id/unavailabilities", createProfessionalUnavailabilityHandler);
+router.delete("/:id/unavailabilities/:unavailabilityId", deleteProfessionalUnavailabilityHandler);
 
 export default router;

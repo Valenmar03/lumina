@@ -217,6 +217,24 @@ export type UpdateProfessionalSchedulesPayload = {
   }>;
 };
 
+export type ProfessionalUnavailability = {
+  id: string;
+  businessId: string;
+  professionalId: string;
+  startAt: string;
+  endAt: string;
+  reason?: string | null;
+  createdAt: string;
+};
+
+export type ConflictingAppointment = {
+  id: string;
+  startAt: string;
+  endAt: string;
+  client: { fullName: string };
+  service: { name: string };
+};
+
 
 // AGENDA
 

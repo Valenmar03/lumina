@@ -1,5 +1,5 @@
 import { apiFetch } from "./api";
-import type { CreateProfessionalPayload, CreateProfessionalResponse, Professional, ProfessionalSchedulesResponse, UpdateProfessionalSchedulesPayload } from "../types/entities";
+import type { CreateProfessionalPayload, CreateProfessionalResponse, Professional, ProfessionalSchedulesResponse, UpdateProfessionalSchedulesPayload, ProfessionalUnavailability } from "../types/entities";
 import type { AvailabilityResponse, ProfessionalServicesResponse } from "../types/entities";
 
 export function getProfessionals() {
@@ -111,4 +111,41 @@ export function createProfessionalAccount(professionalId: string, username: stri
     method: "POST",
     body: JSON.stringify({ username, password }),
   });
+}
+
+export function getProfessionalUnavailabilities(params: { professionalId: string }) {
+  return apiFetch<{ unavailabilities: ProfessionalUnavailability[] }>(
+    `/professionals/${params.professionalId}/unavailabilities`
+  );
+}
+
+export function createProfessionalUnavailability(params: {
+  professionalId: string;
+  startAt: string;
+  endAt: string;
+  reason?: string;
+  cancelConflicting?: boolean;
+}) {
+  return apiFetch<{ unavailability: ProfessionalUnavailability }>(
+    `/professionals/${params.professionalId}/unavailabilities`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        startAt: params.startAt,
+        endAt: params.endAt,
+        reason: params.reason,
+        cancelConflicting: params.cancelConflicting,
+      }),
+    }
+  );
+}
+
+export function deleteProfessionalUnavailability(params: {
+  professionalId: string;
+  id: string;
+}) {
+  return apiFetch(
+    `/professionals/${params.professionalId}/unavailabilities/${params.id}`,
+    { method: "DELETE" }
+  );
 }

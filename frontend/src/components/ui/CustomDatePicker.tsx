@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import { format, parseISO } from "date-fns";
@@ -57,6 +58,10 @@ const colorConfig = {
   },
 };
 
+const PICKER_OPEN_EVENT = "datepicker:open";
+
+let instanceCounter = 0;
+
 export default function CustomDatePicker({
   label,
   value,
@@ -65,6 +70,7 @@ export default function CustomDatePicker({
   placeholder = "Seleccionar fecha",
   color = "teal",
 }: Props) {
+  const instanceId = useRef(++instanceCounter);
   const [open, setOpen] = useState(false);
   const [_openUpwards, setOpenUpwards] = useState(false);
   const [popoverPosition, setPopoverPosition] = useState({
@@ -166,6 +172,15 @@ export default function CustomDatePicker({
   }, [disabled]);
 
   useEffect(() => {
+    const handleOtherOpen = (e: Event) => {
+      const id = (e as CustomEvent<number>).detail;
+      if (id !== instanceId.current) setOpen(false);
+    };
+    document.addEventListener(PICKER_OPEN_EVENT, handleOtherOpen);
+    return () => document.removeEventListener(PICKER_OPEN_EVENT, handleOtherOpen);
+  }, []);
+
+  useEffect(() => {
     if (!open) return;
 
     updatePopoverPosition();
@@ -198,6 +213,9 @@ export default function CustomDatePicker({
             if (disabled) return;
 
             if (!open) {
+              document.dispatchEvent(
+                new CustomEvent<number>(PICKER_OPEN_EVENT, { detail: instanceId.current })
+              );
               updatePopoverPosition();
               setVisibleMonth(selectedDate ?? new Date());
             }
@@ -227,7 +245,7 @@ export default function CustomDatePicker({
           <CalendarDays className="ml-3 h-4 w-4 shrink-0 text-slate-400" />
         </button>
 
-        {open && (
+        {open && createPortal(
           <div
             ref={popoverRef}
             className="fixed z-200 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl"
@@ -337,11 +355,12 @@ export default function CustomDatePicker({
                 </button>
               )}
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
 
-      {open && (
+      {open && createPortal(
         <style>{`
           .rdp-root button[aria-selected="true"] {
             background: ${colors.selectedBg} !important;
@@ -378,7 +397,8 @@ export default function CustomDatePicker({
             color: #cbd5e1 !important;
             background: transparent !important;
           }
-        `}</style>
+        `}</style>,
+        document.body
       )}
     </div>
   );

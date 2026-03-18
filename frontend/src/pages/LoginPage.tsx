@@ -51,7 +51,7 @@ export default function LoginPage() {
     setError(null);
     setIsSubmitting(true);
     try {
-      await login(slug!, identifier, password);
+      await login(slug!, identifier.trim(), password);
       navigate("/", { replace: true });
     } catch (err: any) {
       setError(err?.message ?? "Error al iniciar sesión");

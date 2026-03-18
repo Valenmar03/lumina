@@ -42,7 +42,7 @@ export default function DashboardDateNavigator({ value, onChange }: Props) {
         <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
           <CustomDatePicker
             value={value}
-            onChange={() => onChange(value)}
+            onChange={onChange}
           />
         </div>
 

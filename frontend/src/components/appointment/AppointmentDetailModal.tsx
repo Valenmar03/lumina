@@ -632,7 +632,7 @@ export default function AppointmentDetailModal({
         )}
 
         {view === "edit" && (
-          appointment!.status !== "RESERVED" && appointment!.status !== "DEPOSIT_PAID" ? (
+          (!appointment || (appointment.status !== "RESERVED" && appointment.status !== "DEPOSIT_PAID")) ? (
           <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
              Solo los turnos en estado reservado o señado puede modificarse
           </div>

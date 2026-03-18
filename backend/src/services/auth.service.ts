@@ -69,13 +69,14 @@ export async function register(
   slug: string
 ): Promise<AuthResult> {
   const normalizedSlug = normalizeSlug(slug);
+  const normalizedEmail = email.trim().toLowerCase();
 
   if (!normalizedSlug) {
     throw Object.assign(new Error("Invalid slug"), { statusCode: 400 });
   }
 
   const [existingEmail, existingSlug] = await Promise.all([
-    prisma.user.findUnique({ where: { email } }),
+    prisma.user.findUnique({ where: { email: normalizedEmail } }),
     prisma.business.findUnique({ where: { slug: normalizedSlug } }),
   ]);
 
@@ -93,7 +94,7 @@ export async function register(
   });
 
   const user = await prisma.user.create({
-    data: { email, passwordHash, role: "OWNER", businessId: business.id },
+    data: { email: normalizedEmail, passwordHash, role: "OWNER", businessId: business.id },
   });
 
   const payload: AuthPayload = { userId: user.id, businessId: business.id, role: user.role };
@@ -118,7 +119,7 @@ export async function login(
   }
 
   // Find user by email (case-insensitive) or username within this business
-  const normalizedIdentifier = identifier.toLowerCase();
+  const normalizedIdentifier = identifier.trim().toLowerCase();
   const user = await prisma.user.findFirst({
     where: {
       businessId: business.id,

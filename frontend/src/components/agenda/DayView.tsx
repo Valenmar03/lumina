@@ -44,33 +44,39 @@ function doAppointmentsOverlap(a: AgendaAppointment, b: AgendaAppointment): bool
   return aStart < bEnd && bStart < aEnd;
 }
 
-function splitAppointmentsForDisplay(appointments: AgendaAppointment[]) {
-  if (appointments.length === 0) {
-    return {
-      primaryAppointments: [] as AgendaAppointment[],
-      secondaryAppointments: [] as AgendaAppointment[],
-    };
-  }
+// Classifies ALL appointments for a professional into primary (card) vs secondary (bubble).
+// Works across hour boundaries — detects cross-hour overlaps correctly.
+function classifyAppointments(appointments: AgendaAppointment[]): {
+  primaryIds: Set<string>;
+  secondaryIds: Set<string>;
+} {
+  const primaryIds = new Set<string>();
+  const secondaryIds = new Set<string>();
 
+  if (appointments.length === 0) return { primaryIds, secondaryIds };
+
+  // Sort highest priority first, then earliest start
   const sorted = [...appointments].sort((a, b) => {
-    const aPriority = a.status ? STATUS_PRIORITY[a.status] : 0;
-    const bPriority = b.status ? STATUS_PRIORITY[b.status] : 0;
-    const priorityDiff = bPriority - aPriority;
-    if (priorityDiff !== 0) return priorityDiff;
+    const ap = STATUS_PRIORITY[a.status as AppointmentStatus] ?? 0;
+    const bp = STATUS_PRIORITY[b.status as AppointmentStatus] ?? 0;
+    const diff = bp - ap;
+    if (diff !== 0) return diff;
     return parseISO(a.startAt).getTime() - parseISO(b.startAt).getTime();
   });
 
-  const primary = sorted[0];
-  const rest = sorted.slice(1);
+  for (const appt of sorted) {
+    const conflictsWithPrimary = sorted
+      .filter((p) => primaryIds.has(p.id))
+      .some((p) => doAppointmentsOverlap(appt, p));
 
-  // Only appointments that truly overlap with the primary become bubbles
-  const secondaryAppointments = rest.filter((appt) => doAppointmentsOverlap(primary, appt));
-  const nonOverlapping = rest.filter((appt) => !doAppointmentsOverlap(primary, appt));
+    if (conflictsWithPrimary) {
+      secondaryIds.add(appt.id);
+    } else {
+      primaryIds.add(appt.id);
+    }
+  }
 
-  return {
-    primaryAppointments: [primary, ...nonOverlapping],
-    secondaryAppointments,
-  };
+  return { primaryIds, secondaryIds };
 }
 
 
@@ -169,6 +175,22 @@ export default function DayView({
   handleAppointmentClick,
   getAppointmentTopAndHeight,
 }: DayViewProps) {
+  // Precompute global classification (primary vs secondary/bubble) per professional.
+  // This handles cross-hour overlaps correctly, unlike per-hour grouping.
+  const classificationByPro: Record<string, ReturnType<typeof classifyAppointments>> = {};
+  for (const pro of professionals) {
+    const proAppts = dayAppointments.filter((a) => a.professionalId === pro.id);
+    classificationByPro[pro.id] = classifyAppointments(proAppts);
+  }
+
+  // For single-professional view (selectedProfessionalId !== "all")
+  const singleProClassification =
+    selectedProfessionalId !== "all"
+      ? classificationByPro[selectedProfessionalId] ?? classifyAppointments(
+          dayAppointments.filter((a) => a.professionalId === selectedProfessionalId),
+        )
+      : { primaryIds: new Set<string>(), secondaryIds: new Set<string>() };
+
   if (selectedProfessionalId === "all") {
     return (
       <div className="overflow-x-auto">
@@ -228,16 +250,13 @@ export default function DayView({
               <TimeLabel hour={hour} className="h-16 border-b" />
 
               {professionals.map((professional) => {
-                const hourAppointments = dayAppointments.filter((appt) => {
-                  const start = parseISO(appt.startAt);
-                  return (
-                    appt.professionalId === professional.id &&
-                    start.getHours() === hour
-                  );
-                });
+                const { primaryIds, secondaryIds } = classificationByPro[professional.id] ?? { primaryIds: new Set(), secondaryIds: new Set() };
 
-                const { primaryAppointments, secondaryAppointments } =
-                  splitAppointmentsForDisplay(hourAppointments);
+                const proAppts = dayAppointments.filter(
+                  (appt) => appt.professionalId === professional.id && parseISO(appt.startAt).getHours() === hour,
+                );
+                const primaryAppts = proAppts.filter((a) => primaryIds.has(a.id));
+                const secondaryAppts = proAppts.filter((a) => secondaryIds.has(a.id));
 
                 return (
                   <div
@@ -251,7 +270,7 @@ export default function DayView({
                       )
                     }
                   >
-                    {primaryAppointments.map((appt) => (
+                    {primaryAppts.map((appt) => (
                       <AppointmentCard
                         key={appt.id}
                         appt={appt}
@@ -263,7 +282,7 @@ export default function DayView({
                     ))}
 
                     {renderSecondaryBubbles(
-                      secondaryAppointments,
+                      secondaryAppts,
                       getAppointmentTopAndHeight,
                       handleAppointmentClick,
                     )}
@@ -322,13 +341,15 @@ export default function DayView({
         </div>
 
         {HOURS.map((hour) => {
-          const hourAppointments = dayAppointments.filter((appt) => {
-            const start = parseISO(appt.startAt);
-            return start.getHours() === hour;
-          });
+          const { primaryIds, secondaryIds } = singleProClassification;
 
-          const { primaryAppointments, secondaryAppointments } =
-            splitAppointmentsForDisplay(hourAppointments);
+          const proAppts = dayAppointments.filter(
+            (appt) =>
+              appt.professionalId === selectedProfessionalId &&
+              parseISO(appt.startAt).getHours() === hour,
+          );
+          const primaryAppts = proAppts.filter((a) => primaryIds.has(a.id));
+          const secondaryAppts = proAppts.filter((a) => secondaryIds.has(a.id));
 
           return (
             <div
@@ -348,7 +369,7 @@ export default function DayView({
                   )
                 }
               >
-                {primaryAppointments.map((appt) => (
+                {primaryAppts.map((appt) => (
                   <AppointmentCard
                     key={appt.id}
                     appt={appt}
@@ -360,7 +381,7 @@ export default function DayView({
                 ))}
 
                 {renderSecondaryBubbles(
-                  secondaryAppointments,
+                  secondaryAppts,
                   getAppointmentTopAndHeight,
                   handleAppointmentClick,
                 )}

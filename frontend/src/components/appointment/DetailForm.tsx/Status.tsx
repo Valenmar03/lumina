@@ -71,7 +71,7 @@ export default function Status({
                </Button>
             )}
 
-            {effectiveStatus !== "RESERVED" && !isCompleted && !isCanceled && (
+            {effectiveStatus !== "RESERVED" && effectiveStatus !== "PENDING_RESOLUTION" && !isCompleted && !isCanceled && (
                <Button
                   variant="border border-cyan-200 bg-cyan-100 text-cyan-700 hover:bg-cyan-200"
                   onClick={() => handleChangeStatus("RESERVED")}
@@ -83,6 +83,7 @@ export default function Status({
             )}
 
             {effectiveStatus !== "DEPOSIT_PAID" &&
+               effectiveStatus !== "PENDING_RESOLUTION" &&
                !isCompleted &&
                !isCanceled && (
                   <Button

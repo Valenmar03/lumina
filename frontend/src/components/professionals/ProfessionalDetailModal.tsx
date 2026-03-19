@@ -165,6 +165,7 @@ export default function ProfessionalDetailModal({
   const [unavailEndTime, setUnavailEndTime] = useState("18:00");
   const [unavailReason, setUnavailReason] = useState("");
   const [unavailError, setUnavailError] = useState<string | null>(null);
+  const [pendingDeleteIds, setPendingDeleteIds] = useState<Set<string>>(new Set());
   const [pendingConflicts, setPendingConflicts] = useState<{
     conflicts: ConflictingAppointment[];
     startAt: string;
@@ -179,6 +180,7 @@ export default function ProfessionalDetailModal({
     setColor(professional.color || "#0D9488");
     setActive(Boolean(professional.active));
     setSelectedServiceIds(assignedServiceIds);
+    setPendingDeleteIds(new Set());
 
     const next = buildEmptyScheduleState();
 
@@ -303,9 +305,10 @@ export default function ProfessionalDetailModal({
   const hasScheduleErrors = Object.keys(scheduleValidation).length > 0;
 
   const isSaving =
-  updateProfessionalMutation.isPending ||
-  updateProfessionalServicesMutation.isPending ||
-  isUpdatingSchedule;
+    updateProfessionalMutation.isPending ||
+    updateProfessionalServicesMutation.isPending ||
+    deleteUnavailabilityMutation.isPending ||
+    isUpdatingSchedule;
 
   const handleSave = async () => {
     if (!professional) return;
@@ -360,6 +363,11 @@ export default function ProfessionalDetailModal({
           })
         )
       );
+
+      for (const id of pendingDeleteIds) {
+        await deleteUnavailabilityMutation.mutateAsync(id);
+      }
+      setPendingDeleteIds(new Set());
 
       onClose();
     } catch (error) {
@@ -650,30 +658,46 @@ export default function ProfessionalDetailModal({
             {unavailabilities.length === 0 ? (
               <p className="text-sm text-slate-400">Sin bloqueos de horario</p>
             ) : (
-              unavailabilities.map((u) => (
-                <div
-                  key={u.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-slate-700">
-                      {format(parseISO(u.startAt), "dd/MM/yyyy")}
-                      {" – "}
-                      {format(parseISO(u.endAt), "dd/MM/yyyy")}
-                    </p>
-                    {u.reason && (
-                      <p className="text-xs text-slate-400">{u.reason}</p>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => deleteUnavailabilityMutation.mutate(u.id)}
-                    className="text-slate-400 hover:text-red-500 transition-colors"
+              unavailabilities.map((u) => {
+                const markedForDelete = pendingDeleteIds.has(u.id);
+                return (
+                  <div
+                    key={u.id}
+                    className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2 transition-colors ${
+                      markedForDelete
+                        ? "border-red-200 bg-red-50"
+                        : "border-slate-200 bg-white"
+                    }`}
                   >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))
+                    <div>
+                      <p className={`text-sm font-medium ${markedForDelete ? "text-red-600 line-through" : "text-slate-700"}`}>
+                        {format(parseISO(u.startAt), "dd/MM/yyyy HH:mm")}
+                        {" – "}
+                        {format(parseISO(u.endAt), "dd/MM/yyyy HH:mm")}
+                      </p>
+                      {u.reason && (
+                        <p className={`text-xs ${markedForDelete ? "text-red-400" : "text-slate-400"}`}>{u.reason}</p>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPendingDeleteIds((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(u.id)) next.delete(u.id);
+                          else next.add(u.id);
+                          return next;
+                        })
+                      }
+                      className={`transition-colors ${
+                        markedForDelete ? "text-red-500" : "text-slate-400 hover:text-red-500"
+                      }`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                );
+              })
             )}
           </div>
 
@@ -716,19 +740,27 @@ export default function ProfessionalDetailModal({
               type="button"
               disabled={createUnavailabilityMutation.isPending}
               onClick={() => {
-                if (!unavailStart || !unavailEnd) {
-                  setUnavailError("Completá fecha de inicio y fin");
+                if (!unavailStart) {
+                  setUnavailError("Completá la fecha de inicio");
+                  return;
+                }
+                if (!unavailEnd) {
+                  setUnavailError("Completá la fecha de fin");
                   return;
                 }
                 const start = new Date(`${unavailStart}T${unavailStartTime}:00`);
                 const end = new Date(`${unavailEnd}T${unavailEndTime}:00`);
+                if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+                  setUnavailError("Fecha u hora inválida");
+                  return;
+                }
                 if (start >= end) {
                   setUnavailError("El inicio debe ser anterior al fin");
                   return;
                 }
                 const startAt = start.toISOString();
                 const endAt = end.toISOString();
-                const reason = unavailReason || undefined;
+                const reason = unavailReason.trim() || undefined;
                 createUnavailabilityMutation.mutate(
                   { startAt, endAt, reason },
                   {
@@ -751,10 +783,10 @@ export default function ProfessionalDetailModal({
                   }
                 );
               }}
-              className="inline-flex items-center gap-1.5 text-sm text-teal-700 hover:text-teal-800 disabled:opacity-50"
+              className="h-10 w-full rounded-lg border border-teal-200 bg-teal-50 text-sm font-medium text-teal-700 hover:bg-teal-100 disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
             >
               <Plus className="w-4 h-4" />
-              Agregar bloqueo
+              {createUnavailabilityMutation.isPending ? "Guardando..." : "Agregar bloqueo"}
             </button>
           </div>
         </div>

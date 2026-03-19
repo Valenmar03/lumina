@@ -1,5 +1,5 @@
 import { format, parseISO } from "date-fns";
-import type { AgendaAppointment, Professional } from "../../types/entities";
+import type { AgendaAppointment, DailyUnavailability, Professional } from "../../types/entities";
 import MobileAppointmentCard from "../appointment/MobileAppointmentCard.tsx";
 import { useAgendaDaily } from "../../hooks/useAgenda.ts";
 
@@ -49,6 +49,9 @@ export default function MobileDayView({
   const dailyScheduleBlocksByProfessional =
     dailyAgenda?.scheduleBlocksByProfessional ?? {};
 
+  const dailyUnavailabilitiesByProfessional =
+    dailyAgenda?.unavailabilitiesByProfessional ?? {};
+
   const professionalsToShow =
     selectedProfessionalId === "all"
       ? professionals
@@ -64,6 +67,8 @@ export default function MobileDayView({
             {professionalsToShow.map((professional) => {
               const blocks =
                 dailyScheduleBlocksByProfessional[professional.id] ?? [];
+              const unavailabilities: DailyUnavailability[] =
+                dailyUnavailabilitiesByProfessional[professional.id] ?? [];
 
               return (
                 <div
@@ -74,22 +79,34 @@ export default function MobileDayView({
                     {professional.name}:
                   </span>
 
-                  {blocks.length > 0 ? (
-                    blocks.map((block) => (
-                      <span
-                        key={
-                          block.id ??
-                          `${professional.id}-${block.dayOfWeek}-${block.startTime}-${block.endTime}`
-                        }
-                        className="inline-flex items-center rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] text-slate-600"
-                      >
-                        {block.startTime} - {block.endTime}
-                      </span>
-                    ))
-                  ) : (
+                  {blocks.length === 0 && unavailabilities.length === 0 ? (
                     <span className="text-[11px] text-slate-400">
                       No trabaja hoy
                     </span>
+                  ) : (
+                    <>
+                      {blocks.map((block) => (
+                        <span
+                          key={
+                            block.id ??
+                            `${professional.id}-${block.dayOfWeek}-${block.startTime}-${block.endTime}`
+                          }
+                          className="inline-flex items-center rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] text-slate-600"
+                        >
+                          {block.startTime} - {block.endTime}
+                        </span>
+                      ))}
+                      {unavailabilities.map((u) => (
+                        <span
+                          key={u.id}
+                          className="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-[11px] text-red-500"
+                          title={u.reason ?? undefined}
+                        >
+                          {format(parseISO(u.startAt), "HH:mm")} – {format(parseISO(u.endAt), "HH:mm")}
+                          {u.reason ? ` · ${u.reason}` : ""}
+                        </span>
+                      ))}
+                    </>
                   )}
                 </div>
               );

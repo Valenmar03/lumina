@@ -4,6 +4,23 @@ import type { AppointmentStatus, PaymentMethod } from "@prisma/client";
 
 const SOFT_TOLERANCE_MIN = 15 as const;
 
+async function checkUnavailabilityBlock(
+  businessId: string,
+  professionalId: string,
+  startAt: Date,
+  endAt: Date,
+) {
+  const blocked = await prisma.professionalUnavailability.findFirst({
+    where: {
+      businessId,
+      professionalId,
+      startAt: { lt: endAt },
+      endAt: { gt: startAt },
+    },
+  });
+  if (blocked) throw badRequest("Professional is unavailable at this time");
+}
+
 type ScheduleWarning =
   | null
   | { type: "NO_SCHEDULE"; severity: "HARD" }
@@ -78,6 +95,7 @@ export class AppointmentService {
       },
     });
     if (overlapping) throw badRequest("This time slot is already occupied");
+    await checkUnavailabilityBlock(businessId, professionalId, startDate, endDate);
 
     const dayOfWeek = getDayOfWeek(startDate);
     const startHHMM = toHHMM(startDate);
@@ -154,7 +172,7 @@ export class AppointmentService {
 
     return appointments.map((appt) => ({
       ...appt,
-      isPendingResolution: appt.status === "RESERVED" && appt.endAt.getTime() < Date.now(),
+      isPendingResolution: (appt.status === "RESERVED" || appt.status === "DEPOSIT_PAID") && appt.endAt.getTime() < Date.now(),
     }));
   }
 
@@ -269,6 +287,7 @@ export class AppointmentService {
       },
     });
     if (overlapping) throw badRequest("This time slot is already occupied");
+    await checkUnavailabilityBlock(businessId, professionalId, startDate, endDate);
 
     const dayOfWeek = getDayOfWeek(startDate);
     const startHHMM = toHHMM(startDate);
@@ -314,7 +333,7 @@ export class AppointmentService {
     return {
       appointment: {
         ...updated,
-        isPendingResolution: updated.status === "RESERVED" && updated.endAt.getTime() < Date.now(),
+        isPendingResolution: (updated.status === "RESERVED" || updated.status === "DEPOSIT_PAID") && updated.endAt.getTime() < Date.now(),
       },
       warning,
     };
@@ -351,6 +370,7 @@ export class AppointmentService {
       },
     });
     if (overlapping) throw badRequest("This time slot is already occupied");
+    await checkUnavailabilityBlock(businessId, appointment.professionalId, newStart, newEnd);
 
     const dayOfWeek = getDayOfWeek(newStart);
     const startHHMM = toHHMM(newStart);

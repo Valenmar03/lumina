@@ -37,13 +37,22 @@ export async function agendaDailyHandler(req: Request, res: Response) {
       status: status ? (String(status) as any) : undefined,
     });
 
+    const fromDate = new Date(range.from);
+    const toDate = new Date(range.to);
+
     if (profId) {
-      const [appointments, scheduleBlocks] = await Promise.all([
+      const [appointments, scheduleBlocks, unavailMap] = await Promise.all([
         appointmentsPromise,
         professionalScheduleService.getScheduleBlocksForDay({
           businessId,
           professionalId: profId,
           dayOfWeek,
+        }),
+        professionalScheduleService.getUnavailabilitiesForDay({
+          businessId,
+          professionalIds: [profId],
+          from: fromDate,
+          to: toDate,
         }),
       ]);
 
@@ -53,23 +62,34 @@ export async function agendaDailyHandler(req: Request, res: Response) {
         professionalId: profId,
         range,
         scheduleBlocksByProfessional: { [profId]: scheduleBlocks },
+        unavailabilitiesByProfessional: unavailMap,
         appointments,
       });
     }
 
     const professionals = await professionalService.listProfessionals({ businessId });
-    const scheduleEntries = await Promise.all(
-      professionals.map(async (professional) => {
-        const blocks = await professionalScheduleService.getScheduleBlocksForDay({
-          businessId,
-          professionalId: professional.id,
-          dayOfWeek,
-        });
-        return [professional.id, blocks] as const;
-      })
-    );
+    const professionalIds = professionals.map((p) => p.id);
 
-    const appointments = await appointmentsPromise;
+    const [scheduleEntries, unavailMap, appointments] = await Promise.all([
+      Promise.all(
+        professionals.map(async (professional) => {
+          const blocks = await professionalScheduleService.getScheduleBlocksForDay({
+            businessId,
+            professionalId: professional.id,
+            dayOfWeek,
+          });
+          return [professional.id, blocks] as const;
+        })
+      ),
+      professionalScheduleService.getUnavailabilitiesForDay({
+        businessId,
+        professionalIds,
+        from: fromDate,
+        to: toDate,
+      }),
+      appointmentsPromise,
+    ]);
+
     const scheduleBlocksByProfessional = Object.fromEntries(scheduleEntries);
 
     return res.json({
@@ -77,6 +97,7 @@ export async function agendaDailyHandler(req: Request, res: Response) {
       date: ymd,
       range,
       scheduleBlocksByProfessional,
+      unavailabilitiesByProfessional: unavailMap,
       appointments,
     });
   } catch (err: any) {

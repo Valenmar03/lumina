@@ -1,9 +1,10 @@
-import { parseISO } from "date-fns";
+import { format, parseISO } from "date-fns";
 import TimeLabel from "./TimeLabel";
 import AppointmentCard from "../appointment/AppointmentCard";
 import type {
   AgendaAppointment,
   AppointmentStatus,
+  DailyUnavailability,
   Professional,
   ScheduleBlock,
 } from "../../types/entities";
@@ -13,6 +14,7 @@ type DayViewProps = {
   selectedProfessional?: Professional | null;
   professionals: Professional[];
   dailyScheduleBlocksByProfessional: Record<string, ScheduleBlock[]>;
+  dailyUnavailabilitiesByProfessional: Record<string, DailyUnavailability[]>;
   dayAppointments: AgendaAppointment[];
   HOURS: number[];
   currentDate: Date;
@@ -163,11 +165,44 @@ function renderSecondaryBubbles(
   });
 }
 
+function renderScheduleOrBlock(
+  blocks: ScheduleBlock[],
+  unavailabilities: DailyUnavailability[],
+) {
+  if (blocks.length === 0 && unavailabilities.length === 0) {
+    return <p className="text-xs text-slate-400">No tiene horarios hoy</p>;
+  }
+
+  return (
+    <>
+      {blocks.map((block) => (
+        <span
+          key={block.id}
+          className="inline-flex items-center rounded-full bg-white border border-slate-200 px-3 py-1 text-xs text-slate-600"
+        >
+          {block.startTime} - {block.endTime}
+        </span>
+      ))}
+      {unavailabilities.map((u) => (
+        <span
+          key={u.id}
+          className="inline-flex items-center rounded-full bg-red-50 border border-red-200 px-3 py-1 text-xs text-red-500"
+          title={u.reason ?? undefined}
+        >
+          {format(parseISO(u.startAt), "HH:mm")} – {format(parseISO(u.endAt), "HH:mm")}
+          {u.reason ? ` · ${u.reason}` : ""}
+        </span>
+      ))}
+    </>
+  );
+}
+
 export default function DayView({
   selectedProfessionalId,
   selectedProfessional,
   professionals,
   dailyScheduleBlocksByProfessional,
+  dailyUnavailabilitiesByProfessional,
   dayAppointments,
   HOURS,
   currentDate,
@@ -205,6 +240,8 @@ export default function DayView({
           {professionals.map((professional) => {
             const blocks =
               dailyScheduleBlocksByProfessional[professional.id] ?? [];
+            const unavailabilities =
+              dailyUnavailabilitiesByProfessional[professional.id] ?? [];
 
             return (
               <div
@@ -225,20 +262,7 @@ export default function DayView({
                   </div>
 
                   <div className="flex flex-wrap justify-center gap-2">
-                    {
-                      blocks.length > 0 ? (
-                        blocks.map((block) => (
-                          <span
-                            key={block.id}
-                            className="inline-flex items-center rounded-full bg-white border border-slate-200 px-3 py-1 text-xs text-slate-600"
-                          >
-                            {block.startTime} - {block.endTime}
-                          </span>
-                        ))
-                      ) : (
-                        <p className="text-xs text-slate-400">No tiene horarios hoy</p>
-                      )
-                    }
+                    {renderScheduleOrBlock(blocks, unavailabilities)}
                   </div>
                 </div>
               </div>
@@ -300,6 +324,10 @@ export default function DayView({
     selectedProfessionalId !== "all"
       ? dailyScheduleBlocksByProfessional[selectedProfessionalId] ?? []
       : [];
+  const unavailabilities =
+    selectedProfessionalId !== "all"
+      ? dailyUnavailabilitiesByProfessional[selectedProfessionalId] ?? []
+      : [];
 
   return (
     <div className="overflow-x-auto">
@@ -321,20 +349,7 @@ export default function DayView({
               </div>
 
               <div className="flex flex-wrap justify-center gap-2">
-                {
-                  blocks.length > 0 ? (
-                    blocks.map((block) => (
-                      <span
-                        key={block.id}
-                        className="inline-flex items-center rounded-full bg-white border border-slate-200 px-3 py-1 text-xs text-slate-600"
-                      >
-                        {block.startTime} - {block.endTime}
-                      </span>
-                    ))
-                  ) : (
-                    <p className="text-xs text-slate-400">No tiene horarios hoy</p>
-                  )
-                }
+                {renderScheduleOrBlock(blocks, unavailabilities)}
               </div>
             </div>
           </div>

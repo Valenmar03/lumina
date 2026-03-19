@@ -265,6 +265,13 @@ export type AgendaAppointment = {
   finalPaymentMethod?: PaymentMethod;
 };
 
+export type DailyUnavailability = {
+  id: string;
+  startAt: string;
+  endAt: string;
+  reason?: string | null;
+};
+
 export type DailyAgendaResponse = {
   kind: "daily";
   date: string;
@@ -275,6 +282,7 @@ export type DailyAgendaResponse = {
   };
   scheduleBlocks?: ScheduleBlock[];
   scheduleBlocksByProfessional?: Record<string, ScheduleBlock[]>;
+  unavailabilitiesByProfessional?: Record<string, DailyUnavailability[]>;
   appointments: AgendaAppointment[];
 };
 

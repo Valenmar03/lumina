@@ -14,6 +14,31 @@ export class ProfessionalScheduleService {
     });
   }
 
+  async getUnavailabilitiesForDay(params: {
+    businessId: string;
+    professionalIds: string[];
+    from: Date;
+    to: Date;
+  }) {
+    const { businessId, professionalIds, from, to } = params;
+
+    const rows = await prisma.professionalUnavailability.findMany({
+      where: {
+        businessId,
+        professionalId: { in: professionalIds },
+        startAt: { lt: to },
+        endAt: { gt: from },
+      },
+    });
+
+    const result: Record<string, typeof rows> = {};
+    for (const row of rows) {
+      if (!result[row.professionalId]) result[row.professionalId] = [];
+      result[row.professionalId].push(row);
+    }
+    return result;
+  }
+
   async getScheduleBlocksForWeek(params: {
     businessId: string;
     professionalId: string;

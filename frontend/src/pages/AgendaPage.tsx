@@ -144,6 +144,9 @@ export default function AgendaPage() {
    const dailyScheduleBlocksByProfessional =
       dailyAgenda?.scheduleBlocksByProfessional ?? {};
 
+   const dailyUnavailabilitiesByProfessional =
+      dailyAgenda?.unavailabilitiesByProfessional ?? {};
+
    return (
       <>
          <div className="max-w-full mx-auto space-y-4">
@@ -276,6 +279,7 @@ export default function AgendaPage() {
                         selectedProfessional={selectedProfessional}
                         professionals={professionals}
                         dailyScheduleBlocksByProfessional={dailyScheduleBlocksByProfessional}
+                        dailyUnavailabilitiesByProfessional={dailyUnavailabilitiesByProfessional}
                         dayAppointments={dayAppointments}
                         HOURS={HOURS}
                         currentDate={currentDate}

@@ -46,6 +46,11 @@ La app debe sentirse **profesional, simple, rápida y moderna**, con una UI unis
 - PostgreSQL o SQLite en desarrollo, según entorno
 - Prisma como capa de acceso
 
+### Tailwind
+- **Versión 4** — no hay `tailwind.config.js`
+- Se configura via `@import "tailwindcss"` en el CSS principal
+- Clases utilitarias se generan dinámicamente; no hace falta purge manual
+
 ---
 
 ## Principios generales de desarrollo
@@ -133,6 +138,18 @@ Debe contemplar:
 - método de pago o seña si aplica
 - observaciones
 
+#### ProfessionalUnavailability
+Bloqueo de agenda para un profesional.
+Contempla:
+- profesional
+- fecha/hora de inicio y fin
+- motivo (opcional)
+
+Al crear un bloqueo, detectar turnos activos (`RESERVED`, `DEPOSIT_PAID`) que se solapan:
+- si existen, retornar HTTP 409 con la lista de conflictos
+- el admin decide si cancela esos turnos o crea el bloqueo igual
+- **nunca cancelar turnos `COMPLETED` ni `NO_SHOW`**
+
 ---
 
 ## Reglas de negocio importantes
@@ -155,7 +172,7 @@ Usar estados claros y consistentes. Ejemplo:
 - `RESERVED`
 - `DEPOSIT_PAID`
 - `COMPLETED`
-- `CANCELLED`
+- `CANCELED` ← **una sola L** (así está en el schema de Prisma)
 - `NO_SHOW`
 
 Si se agrega un nuevo estado:
@@ -236,6 +253,18 @@ Ejemplo:
 - Reutilizar patrones de clases frecuentes.
 - Evitar strings enormes si pueden abstraerse.
 - Mantener consistencia en paddings, gaps, radios y shadows.
+- Ver nota de versión en Stack principal (v4, sin config file).
+
+### Componentes UI reutilizables existentes
+- `CustomDatePicker` — selector de fecha con popover propio
+- `CustomTimePicker` — selector de hora en pasos configurables (default 30 min)
+- Ambos usan `createPortal` para renderizarse en `document.body` y escapar el contexto de modales animados (ver patrón más abajo).
+- Ambos coordinan entre sí via custom DOM events para cerrar instancias abiertas cuando se abre otra.
+
+### Patrón: pickers/dropdowns dentro de modales
+Los modales con animaciones Tailwind (`scale-*`, `translate-*`) aplican `transform` al DOM, lo que hace que `position: fixed` en hijos se posicione relativo al modal y no al viewport.
+
+**Solución obligatoria:** usar `createPortal(content, document.body)` en cualquier popover, dropdown o picker que viva dentro de un modal. Nunca asumir que `fixed` se comporta igual dentro de un contenedor con `transform`.
 
 ---
 
@@ -278,6 +307,19 @@ Separar en capas:
 - Mensajes claros.
 - Errores de negocio con respuesta comprensible.
 - No exponer detalles internos innecesarios.
+- Usar **HTTP 409** para conflictos de negocio (ej: turnos activos en un rango bloqueado).
+  - El body debe incluir un campo descriptivo del conflicto y los datos necesarios para que el frontend decida.
+  - Ejemplo: `{ error: "CONFLICTING_APPOINTMENTS", conflicts: [...] }`
+
+### Propagación de errores HTTP al frontend
+En `api.ts`, cuando la respuesta no es `ok`, leer el body JSON y adjuntarlo al objeto `Error`:
+```typescript
+const err = new Error(body.error) as Error & { status: number; body: unknown };
+err.status = res.status;
+err.body = body;
+throw err;
+```
+Esto permite que los `onError` de React Query lean `err.status` y `err.body` para manejar flujos específicos (ej: mostrar diálogo de conflictos en vez de un mensaje de error genérico).
 
 ---
 
@@ -291,6 +333,7 @@ Ejemplo:
 - `DepositMethod`
 - `AgendaAppointment`
 - `ProfessionalService`
+- `ConflictingAppointment` — usado en el flujo de bloqueos con conflictos
 
 Si un map depende de un union type o enum, tiparlo correctamente.
 
@@ -448,3 +491,14 @@ Construir una app de turnos que se sienta:
 - fácil de escalar a múltiples negocios
 
 La experiencia de uso debe transmitir orden, control y claridad.
+
+---
+
+## Comandos útiles de desarrollo
+
+### Resetear la base de datos local y re-seedear
+Ejecutar desde `backend/`:
+```bash
+npx prisma migrate reset --force
+npm run seed
+```

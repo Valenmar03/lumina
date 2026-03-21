@@ -61,6 +61,7 @@ export const updateBusinessBody = z.object({
   name: z.string().trim().min(1).max(100).optional(),
   slug: z.string().trim().min(1).max(60).optional(),
   timezone: z.string().trim().max(60).optional(),
+  mpAccessToken: z.string().trim().max(200).optional().nullable(),
 });
 
 // ─── Services ─────────────────────────────────────────────────────────────────
@@ -80,6 +81,8 @@ export const createServiceBody = z.object({
     .nullable(),
   description: z.string().trim().max(500).optional().nullable(),
   active: z.boolean().optional(),
+  requiresDeposit: z.boolean().optional(),
+  depositPercent: z.number().int().min(1).max(100).optional().nullable(),
 });
 
 export const updateServiceBody = createServiceBody.partial();
@@ -308,4 +311,8 @@ export const publicCreateAppointmentBody = z.object({
     .max(30)
     .regex(/^[\d\s+\-().]+$/, "Teléfono inválido"),
   clientEmail: z.string().trim().email("Email inválido").max(254).optional().nullable(),
+});
+
+export const confirmPaymentBody = z.object({
+  paymentId: z.string().min(1).max(100),
 });

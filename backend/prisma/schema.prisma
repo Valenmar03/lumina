@@ -44,6 +44,7 @@ model Business {
   name               String
   slug               String             @unique
   timezone           String             @default("America/Argentina/Buenos_Aires")
+  mpAccessToken      String?
   plan               PlanType           @default(STARTER)
   subscriptionStatus SubscriptionStatus @default(TRIAL)
   createdAt          DateTime           @default(now())
@@ -179,8 +180,10 @@ model Service {
   name        String
   durationMin Int
   description String?
-  basePrice   Decimal
-  active      Boolean  @default(true)
+  basePrice       Decimal
+  requiresDeposit Boolean  @default(false)
+  depositPercent  Int?
+  active          Boolean  @default(true)
   createdAt   DateTime @default(now())
 
   business     Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)

@@ -17,8 +17,8 @@ export async function updateBusinessHandler(req: Request, res: Response) {
     if (role !== "OWNER") {
       return res.status(403).json({ error: "Solo el owner puede modificar el negocio" });
     }
-    const { name, slug, timezone } = req.body;
-    const business = await businessService.updateBusiness(businessId, { name, slug, timezone });
+    const { name, slug, timezone, mpAccessToken } = req.body;
+    const business = await businessService.updateBusiness(businessId, { name, slug, timezone, mpAccessToken });
     return res.json({ business });
   } catch (err: any) {
     return res.status(err?.status ?? 500).json({ error: err?.message ?? "Server error" });

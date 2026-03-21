@@ -22,13 +22,14 @@ export async function updateService(payload: UpdateServicePayload) {
         ...(payload.durationMin !== undefined && { durationMin: payload.durationMin }),
         ...(payload.basePrice !== undefined && { basePrice: payload.basePrice }),
         ...(payload.active !== undefined && { active: payload.active }),
+        ...(payload.requiresDeposit !== undefined && { requiresDeposit: payload.requiresDeposit }),
+        ...(payload.depositPercent !== undefined && { depositPercent: payload.depositPercent }),
       })
     }
   );
 }
 
-export async function createService(payload: CreateServicePayload
-) {
+export async function createService(payload: CreateServicePayload) {
   return apiFetch<{ service: ServiceWithProfessional }>(
     `/services`,
     {
@@ -38,7 +39,9 @@ export async function createService(payload: CreateServicePayload
         description: payload.description,
         durationMin: payload.durationMin,
         basePrice: payload.basePrice,
-        active: payload.active ?? true
+        active: payload.active ?? true,
+        requiresDeposit: payload.requiresDeposit ?? false,
+        depositPercent: payload.depositPercent ?? null,
       }),
     }
   );

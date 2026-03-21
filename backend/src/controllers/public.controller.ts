@@ -5,6 +5,7 @@ import {
   getPublicProfessionals,
   getPublicAvailability,
   createPublicAppointment,
+  confirmPublicPayment,
 } from "../services/public.service";
 
 function handleError(err: unknown, res: Response) {
@@ -66,7 +67,7 @@ export async function createAppointmentHandler(req: Request, res: Response, next
       return;
     }
 
-    const appointment = await createPublicAppointment(req.params["slug"] as string, {
+    const result = await createPublicAppointment(req.params["slug"] as string, {
       serviceId,
       professionalId,
       startAt,
@@ -75,8 +76,21 @@ export async function createAppointmentHandler(req: Request, res: Response, next
       clientEmail,
     });
 
-    res.status(201).json(appointment);
+    res.status(201).json(result);
   } catch (err) {
     handleError(err, res);
+  }
+}
+
+export async function confirmPaymentHandler(req: Request, res: Response) {
+  try {
+    const slug = req.params["slug"] as string;
+    const appointmentId = req.params["appointmentId"] as string;
+    const { paymentId } = req.body;
+    if (!paymentId) return res.status(400).json({ error: "paymentId is required" });
+    const result = await confirmPublicPayment(slug, appointmentId, paymentId);
+    return res.json(result);
+  } catch (err: any) {
+    return res.status(err.status ?? 500).json({ error: err.message });
   }
 }

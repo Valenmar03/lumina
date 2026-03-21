@@ -32,6 +32,7 @@ export type Business = {
   plan: "STARTER" | "PRO";
   subscriptionStatus: "TRIAL" | "ACTIVE" | "PAST_DUE" | "CANCELED";
   createdAt: string;
+  mpAccessToken?: string | null;
 };
 
 //CLIENT
@@ -86,7 +87,9 @@ export type Service = {
   basePrice: string;
   active: boolean;
   createdAt: string;
-  description?: string
+  description?: string;
+  requiresDeposit: boolean;
+  depositPercent: number | null;
 };
 
 
@@ -97,6 +100,8 @@ export type ServiceWithProfessional = {
   basePrice: number;
   active: boolean;
   description?: string;
+  requiresDeposit: boolean;
+  depositPercent: number | null;
   professionalServices: {
     professional: {
       id: string;
@@ -115,6 +120,8 @@ export type UpdateServicePayload = {
   durationMin?: number;
   basePrice?: number;
   active?: boolean;
+  requiresDeposit?: boolean;
+  depositPercent?: number | null;
 };
 
 export type CreateServicePayload = {
@@ -123,6 +130,8 @@ export type CreateServicePayload = {
   durationMin: number;
   basePrice: number;
   active?: boolean;
+  requiresDeposit?: boolean;
+  depositPercent?: number | null;
 };
 
 

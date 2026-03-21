@@ -2,18 +2,18 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { format, addDays, startOfToday, isToday } from "date-fns";
 import { es } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Clock, Check, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, Check, Loader2, CreditCard } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type BusinessInfo = { id: string; name: string; slug: string };
-type Service = { id: string; name: string; durationMin: number; basePrice: number };
 type Professional = { id: string; name: string; color: string };
 type Slot = { startAt: string; endAt: string; label: string };
 
-type Step = "service" | "professional" | "datetime" | "client" | "confirm" | "done";
+type Service = { id: string; name: string; durationMin: number; basePrice: number; requiresDeposit: boolean; depositPercent: number | null };
+type Step = "service" | "professional" | "datetime" | "client" | "confirm" | "redirecting" | "done";
 
-const STEPS: Step[] = ["service", "professional", "datetime", "client", "confirm", "done"];
+const STEPS: Step[] = ["service", "professional", "datetime", "client", "confirm", "redirecting", "done"];
 
 function stepIndex(s: Step) {
   return STEPS.indexOf(s);
@@ -42,6 +42,7 @@ const STEP_LABELS: Record<Step, string> = {
   datetime: "Fecha y hora",
   client: "Tus datos",
   confirm: "Confirmar",
+  redirecting: "Pago",
   done: "Listo",
 };
 
@@ -227,6 +228,7 @@ export default function BookingPage() {
       datetime: "professional",
       client: "datetime",
       confirm: "client",
+      redirecting: "redirecting",
       done: "done",
     };
     setStep(prev[step]);
@@ -253,7 +255,15 @@ export default function BookingPage() {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error ?? "No se pudo confirmar el turno");
       }
-      setStep("done");
+      const result = await res.json();
+      if (result.checkoutUrl) {
+        setStep("redirecting");
+        setTimeout(() => {
+          window.location.href = result.checkoutUrl;
+        }, 300);
+      } else {
+        setStep("done");
+      }
     } catch (e) {
       setSubmitError((e as Error).message);
     } finally {
@@ -277,6 +287,23 @@ export default function BookingPage() {
         <div className="text-center">
           <p className="text-2xl font-semibold text-slate-700">Negocio no encontrado</p>
           <p className="text-slate-400 mt-2">Revisá el link que te compartieron.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Redirecting screen ──
+
+  if (step === "redirecting") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 max-w-sm w-full text-center">
+          <Loader2 className="w-10 h-10 text-teal-600 animate-spin mx-auto mb-4" />
+          <h2 className="text-lg font-semibold text-slate-800 mb-1">Redirigiendo a MercadoPago...</h2>
+          <p className="text-slate-500 text-sm flex items-center justify-center gap-1.5 mt-2">
+            <CreditCard className="w-4 h-4" />
+            Procesando tu seña de forma segura
+          </p>
         </div>
       </div>
     );
@@ -310,12 +337,17 @@ export default function BookingPage() {
     );
   }
 
+  const depositAmount = selectedService?.requiresDeposit && selectedService?.depositPercent
+    ? Math.round(Number(selectedService.basePrice) * selectedService.depositPercent / 100)
+    : null;
+
   const canGoNext: Record<Step, boolean> = {
     service: !!selectedService,
     professional: !!selectedProfessional,
     datetime: !!selectedSlot,
     client: clientName.trim().length >= 2 && clientPhone.trim().length >= 6,
     confirm: true,
+    redirecting: false,
     done: false,
   };
 
@@ -325,6 +357,7 @@ export default function BookingPage() {
     datetime: "client",
     client: "confirm",
     confirm: "confirm",
+    redirecting: "redirecting",
     done: "done",
   };
 
@@ -371,7 +404,14 @@ export default function BookingPage() {
                     }`}
                   >
                     <div>
-                      <p className="font-medium text-slate-800 text-sm">{svc.name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-slate-800 text-sm">{svc.name}</p>
+                        {svc.requiresDeposit && svc.depositPercent && (
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
+                            Seña {svc.depositPercent}%
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
                         <Clock className="w-3 h-3" />
                         {formatDuration(svc.durationMin)}
@@ -508,6 +548,14 @@ export default function BookingPage() {
               {selectedService && formatPrice(selectedService.basePrice) && (
                 <Row label="Precio" value={formatPrice(selectedService.basePrice)!} />
               )}
+              {depositAmount !== null && (
+                <div className="flex justify-between gap-4 items-center">
+                  <span className="text-slate-400">Seña requerida</span>
+                  <span className="font-semibold text-teal-700">
+                    {formatPrice(depositAmount)} ({selectedService?.depositPercent}%)
+                  </span>
+                </div>
+              )}
               <div className="border-t border-slate-200 pt-3" />
               <Row label="Profesional" value={selectedProfessional?.name ?? ""} />
               <Row
@@ -532,14 +580,24 @@ export default function BookingPage() {
               disabled={submitting}
               className="w-full bg-teal-600 hover:bg-teal-700 disabled:opacity-60 text-white font-semibold rounded-xl py-3 flex items-center justify-center gap-2 transition-colors"
             >
-              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-              {submitting ? "Confirmando..." : "Confirmar turno"}
+              {submitting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : depositAmount !== null ? (
+                <CreditCard className="w-4 h-4" />
+              ) : (
+                <Check className="w-4 h-4" />
+              )}
+              {submitting
+                ? "Confirmando..."
+                : depositAmount !== null
+                ? `Pagar seña ${formatPrice(depositAmount)}`
+                : "Confirmar turno"}
             </button>
           </StepWrapper>
         )}
 
         {/* Navigation */}
-        {step !== "confirm" && step !== "done" && (
+        {step !== "confirm" && step !== "done" && step !== "redirecting" && (
           <div className="flex items-center justify-between mt-6">
             <button
               onClick={goBack}

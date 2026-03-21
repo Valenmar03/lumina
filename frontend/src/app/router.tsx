@@ -13,6 +13,9 @@ import ResetPasswordPage from "../pages/ResetPasswordPage.tsx";
 import BusinessSettingsPage from "../pages/BusinessSettingsPage.tsx";
 import AnalyticsPage from "../pages/AnalyticsPage.tsx";
 import BookingPage from "../pages/BookingPage.tsx";
+import BookingPaymentSuccessPage from "../pages/BookingPaymentSuccessPage.tsx";
+import BookingPaymentFailurePage from "../pages/BookingPaymentFailurePage.tsx";
+import BookingPaymentPendingPage from "../pages/BookingPaymentPendingPage.tsx";
 import { useAuth } from "../hooks/useAuth.ts";
 
 function ProtectedRoute() {
@@ -68,6 +71,18 @@ export const router = createBrowserRouter([
   {
     path: "/reservar/:slug",
     element: <BookingPage />,
+  },
+  {
+    path: "/reservar/:slug/pago-exitoso",
+    element: <BookingPaymentSuccessPage />,
+  },
+  {
+    path: "/reservar/:slug/pago-fallido",
+    element: <BookingPaymentFailurePage />,
+  },
+  {
+    path: "/reservar/:slug/pago-pendiente",
+    element: <BookingPaymentPendingPage />,
   },
   {
     path: "/",

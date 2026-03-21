@@ -274,6 +274,12 @@ export default function BusinessSettingsPage() {
               </div>
             </div>
 
+            {/* MercadoPago */}
+            <MercadoPagoSection
+              currentToken={business.mpAccessToken ?? null}
+              onSave={(mpAccessToken) => update({ mpAccessToken }).then(() => {})}
+            />
+
             {/* Plan y suscripción */}
             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
               <div className="flex items-center gap-2.5 px-6 py-4 border-b border-slate-100">
@@ -430,6 +436,128 @@ function CopyUrlRow({ url, accent = "teal" }: { url: string; accent?: "teal" | "
       >
         {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
       </button>
+    </div>
+  );
+}
+
+function MercadoPagoSection({
+  currentToken,
+  onSave,
+}: {
+  currentToken: string | null;
+  onSave: (token: string | null) => Promise<void>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(currentToken ?? "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (!editing) setDraft(currentToken ?? "");
+  }, [currentToken, editing]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setError(null);
+    setSuccess(false);
+    try {
+      await onSave(draft.trim() || null);
+      setEditing(false);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err: any) {
+      setError(err?.message ?? "Error al guardar");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setDraft(currentToken ?? "");
+    setEditing(false);
+    setError(null);
+  };
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="flex items-center gap-2.5 px-6 py-4 border-b border-slate-100">
+        <KeyRound className="w-4 h-4 text-slate-400" />
+        <h2 className="text-sm font-semibold text-slate-700">MercadoPago</h2>
+      </div>
+      <div className="px-6 py-4">
+        <p className="text-xs text-slate-400 mb-3">
+          Ingresá el Access Token de producción de tu cuenta de MercadoPago para habilitar el cobro de señas online.
+        </p>
+
+        <div className="py-2 flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">
+              Token de MercadoPago
+            </p>
+            {editing ? (
+              <div className="space-y-1.5">
+                <PasswordInput
+                  autoFocus
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  className="w-full max-w-sm rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="APP_USR-..."
+                />
+                {error && (
+                  <p className="flex items-center gap-1 text-xs text-red-600">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {error}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm font-medium text-slate-800">
+                {currentToken ? "••••••••••••••••" : <span className="text-slate-400 italic">No configurado</span>}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1 pt-5 shrink-0">
+            {editing ? (
+              <>
+                <button
+                  onClick={handleCancel}
+                  disabled={saving}
+                  className="p-1.5 rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="p-1.5 rounded-md text-teal-600 hover:bg-teal-50 transition-colors"
+                >
+                  {saving ? (
+                    <div className="w-4 h-4 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Check className="w-4 h-4" />
+                  )}
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setEditing(true)}
+                className="p-1.5 rounded-md text-slate-300 hover:bg-slate-100 hover:text-slate-500 transition-colors"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {success && (
+          <p className="flex items-center gap-1.5 text-xs text-emerald-600 mt-1">
+            <Check className="w-3.5 h-3.5 shrink-0" />
+            Token guardado correctamente
+          </p>
+        )}
+      </div>
     </div>
   );
 }

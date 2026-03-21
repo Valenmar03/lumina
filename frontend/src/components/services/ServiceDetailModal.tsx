@@ -36,6 +36,8 @@ export default function ServiceDetailModal({
     const [durationMin, setDurationMin] = useState(30);
     const [active, setActive] = useState(true);
     const [basePrice, setBasePrice] = useState(0);
+    const [requiresDeposit, setRequiresDeposit] = useState(false);
+    const [depositPercent, setDepositPercent] = useState<number>(20);
     const [basePriceError, setBasePriceError] = useState<string | null>(null);
     const [nameError, setNameError] = useState<string | null>(null);
     const [durationError, setDurationError] = useState<string | null>(null);
@@ -48,6 +50,8 @@ export default function ServiceDetailModal({
         setDurationMin(service.durationMin ?? 30);
         setBasePrice(service.basePrice ?? 0);
         setActive(Boolean(service.active));
+        setRequiresDeposit(Boolean(service.requiresDeposit));
+        setDepositPercent(service.depositPercent ?? 20);
         setNameError(null);
         setDurationError(null);
         setBasePriceError(null);
@@ -92,6 +96,8 @@ export default function ServiceDetailModal({
         durationMin: Number(durationMin),
         basePrice: Number(basePrice),
         active,
+        requiresDeposit,
+        depositPercent: requiresDeposit ? Number(depositPercent) : null,
       });
 
       onClose();
@@ -264,6 +270,45 @@ export default function ServiceDetailModal({
                     )}
                 </div>
             </div>
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-800">Requiere seña</p>
+                <p className="text-xs text-slate-400">El cliente deberá pagar una seña al reservar online</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRequiresDeposit((prev) => !prev)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  requiresDeposit ? "bg-teal-600" : "bg-slate-200"
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                    requiresDeposit ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
+
+            {requiresDeposit && (
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                  Porcentaje de seña (1–100)
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={100}
+                  step={1}
+                  value={depositPercent}
+                  onChange={(e) => setDepositPercent(Number(e.target.value))}
+                  className="h-10 w-32 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+            )}
           </div>
 
           <div className="rounded-xl p-4">

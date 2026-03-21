@@ -51,7 +51,7 @@ export async function getServiceByIdHandler(req: Request, res: Response) {
 export async function createServiceHandler(req: Request, res: Response) {
   try {
     const { businessId } = req.user!;
-    const { name, durationMin, basePrice, active, description } = req.body;
+    const { name, durationMin, basePrice, active, description, requiresDeposit, depositPercent } = req.body;
 
     const service = await serviceService.createService({
       businessId,
@@ -60,6 +60,8 @@ export async function createServiceHandler(req: Request, res: Response) {
       basePrice: Number(basePrice),
       description,
       active,
+      requiresDeposit,
+      depositPercent: depositPercent !== undefined && depositPercent !== null ? Number(depositPercent) : null,
     });
 
     return res.status(201).json({ service });
@@ -72,7 +74,7 @@ export async function updateServiceHandler(req: Request, res: Response) {
   try {
     const { businessId } = req.user!;
     const { id } = req.params;
-    const { name, description, durationMin, basePrice, active } = req.body;
+    const { name, description, durationMin, basePrice, active, requiresDeposit, depositPercent } = req.body;
 
     const service = await serviceService.updateService(String(id), businessId, {
       ...(name !== undefined ? { name } : {}),
@@ -82,6 +84,8 @@ export async function updateServiceHandler(req: Request, res: Response) {
       ...(active !== undefined
         ? { active: typeof active === "boolean" ? active : String(active) === "true" }
         : {}),
+      ...(requiresDeposit !== undefined ? { requiresDeposit: Boolean(requiresDeposit) } : {}),
+      ...(depositPercent !== undefined ? { depositPercent: depositPercent !== null ? Number(depositPercent) : null } : {}),
     });
 
     return res.json({ service });

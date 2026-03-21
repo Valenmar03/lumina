@@ -11,9 +11,9 @@ export const businessService = {
 
   async updateBusiness(
     businessId: string,
-    data: { name?: string; slug?: string; timezone?: string }
+    data: { name?: string; slug?: string; timezone?: string; mpAccessToken?: string | null }
   ) {
-    const update: { name?: string; slug?: string; timezone?: string } = {};
+    const update: { name?: string; slug?: string; timezone?: string; mpAccessToken?: string | null } = {};
 
     if (data.name !== undefined) {
       const trimmed = data.name.trim();
@@ -35,6 +35,10 @@ export const businessService = {
 
     if (data.timezone !== undefined) {
       update.timezone = data.timezone;
+    }
+
+    if (data.mpAccessToken !== undefined) {
+      update.mpAccessToken = data.mpAccessToken ?? null;
     }
 
     return prisma.business.update({ where: { id: businessId }, data: update });

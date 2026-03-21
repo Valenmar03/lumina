@@ -5,6 +5,7 @@ import {
   getProfessionalsHandler,
   getAvailabilityHandler,
   createAppointmentHandler,
+  confirmPaymentHandler,
 } from "../controllers/public.controller";
 import { validate } from "../middleware/validate";
 import {
@@ -12,6 +13,7 @@ import {
   publicAvailabilityParams,
   publicAvailabilityQuery,
   publicCreateAppointmentBody,
+  confirmPaymentBody,
 } from "../validators";
 
 const router = Router();
@@ -26,5 +28,10 @@ router.get(
   getAvailabilityHandler
 );
 router.post("/:slug/appointments", validate(slugParams, "params"), validate(publicCreateAppointmentBody), createAppointmentHandler);
+router.post(
+  "/:slug/appointments/:appointmentId/confirm-payment",
+  validate(confirmPaymentBody),
+  confirmPaymentHandler
+);
 
 export default router;

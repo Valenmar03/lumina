@@ -3,6 +3,7 @@ import { FileText, Mail, Phone, Trash2, User2 } from "lucide-react";
 
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
+import PhoneInput from "../ui/PhoneInput";
 import { useDeleteClient, useUpdateClient } from "../../hooks/useClients";
 import type { Client } from "../../types/entities";
 
@@ -183,21 +184,10 @@ export default function ClientDetailModal({
             </div>
 
             <div>
-              <label className="mb-1.5 flex items-center gap-2 text-sm font-medium text-slate-700">
-                <Phone className="w-4 h-4 text-slate-500" />
-                Teléfono
-              </label>
-              <input
+              <PhoneInput
                 value={phone}
-                onChange={(e) => {
-                  setPhone(e.target.value);
-                  if (e.target.value.trim()) setPhoneError(null);
-                }}
-                className={`h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2 ${
-                  phoneError
-                    ? "border-red-300 focus:ring-red-500"
-                    : "border-slate-200 focus:ring-teal-500"
-                }`}
+                onChange={(v) => { setPhone(v); if (v) setPhoneError(null); }}
+                required
               />
               {phoneError && (
                 <p className="mt-1 text-xs text-red-600">{phoneError}</p>

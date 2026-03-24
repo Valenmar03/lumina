@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Eye, Plus, Search, Phone, Link2, Check, Copy } from "lucide-react";
+import { Eye, Plus, Search, Phone, Link2, Check } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import Button from "../components/ui/Button";

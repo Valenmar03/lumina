@@ -31,6 +31,7 @@ type DayViewProps = {
 };
 
 export const STATUS_PRIORITY: Record<AppointmentStatus, number> = {
+  PENDING_PAYMENT: 6,
   RESERVED: 5,
   DEPOSIT_PAID: 4,
   COMPLETED: 3,

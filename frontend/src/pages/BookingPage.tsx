@@ -595,7 +595,7 @@ export default function BookingPage() {
         )}
 
         {/* Navigation */}
-        {step !== "confirm" && step !== "done" && step !== "redirecting" && (
+        {step !== "confirm" && (
           <div className="flex items-center justify-between mt-6">
             <button
               onClick={goBack}

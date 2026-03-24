@@ -38,6 +38,14 @@ const defaultStatusUi: StatusUi = {
 };
 
 const statusUiMap: Record<AppointmentCardUiStatus, StatusUi> = {
+  [AppointmentStatus.PENDING_PAYMENT]: {
+    dot: "bg-amber-500",
+    badge: "bg-amber-100 text-amber-700 border-amber-200",
+    label: appointmentStatusLabels[AppointmentStatus.PENDING_PAYMENT],
+    cardClass: "opacity-75",
+    titleClass: "text-slate-800",
+    metaClass: "text-slate-500",
+  },
   [AppointmentStatus.RESERVED]: {
     dot: "bg-cyan-500",
     badge: "bg-cyan-100 text-cyan-700 border-cyan-200",

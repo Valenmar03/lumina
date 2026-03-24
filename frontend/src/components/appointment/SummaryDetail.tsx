@@ -15,6 +15,11 @@ type StatusUi = {
 };
 
 const statusUiMap: Record<AppointmentUiStatus, StatusUi> = {
+  PENDING_PAYMENT: {
+    label: appointmentStatusLabels.PENDING_PAYMENT,
+    badgeClasses: "border-amber-200 bg-amber-50 text-amber-700",
+    icon: <Clock3 className="h-3.5 w-3.5" />,
+  },
   RESERVED: {
     label: appointmentStatusLabels.RESERVED,
     badgeClasses: "border-cyan-200 bg-cyan-50 text-cyan-700",

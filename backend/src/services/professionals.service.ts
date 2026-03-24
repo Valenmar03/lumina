@@ -228,15 +228,27 @@ export class ProfessionalService {
     const from = day.startOf("day");
     const to = from.plus({ days: 1 });
 
-    const appointments = await prisma.appointment.findMany({
-      where: {
-        businessId,
-        professionalId,
-        status: { in: ["PENDING_PAYMENT", "RESERVED", "DEPOSIT_PAID"] },
-        startAt: { gte: from.toJSDate(), lt: to.toJSDate() },
-      },
-      orderBy: { startAt: "asc" },
-    });
+    const pendingPaymentCutoff = new Date(Date.now() - 30 * 60 * 1000);
+
+    const [appointments, pendingBookings] = await Promise.all([
+      prisma.appointment.findMany({
+        where: {
+          businessId,
+          professionalId,
+          startAt: { gte: from.toJSDate(), lt: to.toJSDate() },
+          status: { in: ["RESERVED", "DEPOSIT_PAID"] },
+        },
+        orderBy: { startAt: "asc" },
+      }),
+      prisma.pendingBooking.findMany({
+        where: {
+          businessId,
+          professionalId,
+          startAt: { gte: from.toJSDate(), lt: to.toJSDate() },
+          createdAt: { gte: pendingPaymentCutoff },
+        },
+      }),
+    ]);
 
     const unavailabilities = await prisma.professionalUnavailability.findMany({
       where: {
@@ -261,11 +273,17 @@ export class ProfessionalService {
         const slotStart = cursor;
         const slotEnd = cursor.plus({ minutes: durationMin });
 
-        const overlaps = appointments.some((appt) => {
-          const apptStart = DateTime.fromJSDate(appt.startAt, { zone: TZ });
-          const apptEnd = DateTime.fromJSDate(appt.endAt, { zone: TZ });
-          return apptStart < slotEnd && apptEnd > slotStart;
-        });
+        const overlaps =
+          appointments.some((appt) => {
+            const apptStart = DateTime.fromJSDate(appt.startAt, { zone: TZ });
+            const apptEnd = DateTime.fromJSDate(appt.endAt, { zone: TZ });
+            return apptStart < slotEnd && apptEnd > slotStart;
+          }) ||
+          pendingBookings.some((pb) => {
+            const pbStart = DateTime.fromJSDate(pb.startAt, { zone: TZ });
+            const pbEnd = pbStart.plus({ minutes: durationMin });
+            return pbStart < slotEnd && pbEnd > slotStart;
+          });
 
         const blocked = unavailabilities.some((u) => {
           const uStart = DateTime.fromJSDate(u.startAt, { zone: TZ });

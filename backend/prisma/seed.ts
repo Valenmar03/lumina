@@ -35,7 +35,7 @@ async function main() {
   console.log(`✓ Business: ${business.name}`);
 
   // ─── Admin user ─────────────────────────────────────────────────────────────
-  const passwordHash = await bcrypt.hash("admin123", 12);
+  const passwordHash = await bcrypt.hash("Admin.123", 12);
   await prisma.user.create({
     data: {
       businessId: business.id,

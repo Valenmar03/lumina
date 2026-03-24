@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Clock3, DollarSign, FileText, User2 } from "lucide-react";
+import { Clock3, DollarSign, FileText, User2, AlertCircle } from "lucide-react";
 
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 import { useProfessionals } from "../../hooks/useProfessionals";
 import { useUpdateService } from "../../hooks/useServices";
+import { useBusiness } from "../../hooks/useBusiness";
 import type { ServiceWithProfessional } from "../../types/entities";
 
 type Props = {
@@ -19,6 +20,8 @@ export default function ServiceDetailModal({
   service,
 }: Props) {
   const { data: professionalsData, isLoading: professionalsLoading } = useProfessionals();
+  const { data: businessData } = useBusiness();
+  const hasMpToken = !!businessData?.business?.mpAccessToken;
 
   const updateServiceMutation = useUpdateService();
 
@@ -280,8 +283,10 @@ export default function ServiceDetailModal({
               </div>
               <button
                 type="button"
-                onClick={() => setRequiresDeposit((prev) => !prev)}
+                onClick={() => hasMpToken && setRequiresDeposit((prev) => !prev)}
+                disabled={!hasMpToken}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  !hasMpToken ? "opacity-40 cursor-not-allowed bg-slate-200" :
                   requiresDeposit ? "bg-teal-600" : "bg-slate-200"
                 }`}
               >
@@ -292,6 +297,16 @@ export default function ServiceDetailModal({
                 />
               </button>
             </div>
+
+            {!hasMpToken && (
+              <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
+                <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                <p className="text-xs text-amber-700">
+                  Para requerir seña necesitás configurar tu Access Token de MercadoPago en{" "}
+                  <a href="/business-settings" className="underline font-medium">Configuración</a>.
+                </p>
+              </div>
+            )}
 
             {requiresDeposit && (
               <div>

@@ -16,6 +16,7 @@ import BookingPage from "../pages/BookingPage.tsx";
 import BookingPaymentSuccessPage from "../pages/BookingPaymentSuccessPage.tsx";
 import BookingPaymentFailurePage from "../pages/BookingPaymentFailurePage.tsx";
 import BookingPaymentPendingPage from "../pages/BookingPaymentPendingPage.tsx";
+import NotFoundPage from "../pages/NotFoundPage.tsx";
 import { useAuth } from "../hooks/useAuth.ts";
 
 function ProtectedRoute() {
@@ -83,6 +84,10 @@ export const router = createBrowserRouter([
   {
     path: "/reservar/:slug/pago-pendiente",
     element: <BookingPaymentPendingPage />,
+  },
+  {
+    path: "*",
+    element: <NotFoundPage />,
   },
   {
     path: "/",

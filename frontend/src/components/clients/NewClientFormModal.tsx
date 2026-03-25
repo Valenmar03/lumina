@@ -59,7 +59,12 @@ export default function NewClientFormModal({ open, onClose }: Props) {
 
       onClose();
     } catch (error) {
-      console.error(error);
+      const err = error as { status?: number };
+      if (err.status === 409) {
+        setPhoneError("Ya existe un cliente con ese número de teléfono");
+      } else {
+        console.error(error);
+      }
     }
   };
 

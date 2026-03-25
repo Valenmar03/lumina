@@ -42,6 +42,7 @@ async function main() {
       username: "admin",
       passwordHash,
       role: "OWNER",
+      emailVerified: true,
     },
   });
   console.log("✓ Usuario admin (user: admin / pass: admin123)");
@@ -100,18 +101,18 @@ async function main() {
 
   // ─── Clients ─────────────────────────────────────────────────────────────────
   const clients = await Promise.all([
-    prisma.client.create({ data: { businessId: business.id, fullName: "Lucía Fernández", phone: "1122334455", email: "lucia@mail.com" } }),
-    prisma.client.create({ data: { businessId: business.id, fullName: "Camila Torres", phone: "1133445566" } }),
-    prisma.client.create({ data: { businessId: business.id, fullName: "Valentina Díaz", phone: "1144556677" } }),
-    prisma.client.create({ data: { businessId: business.id, fullName: "Martina Gómez", phone: "1155667788" } }),
-    prisma.client.create({ data: { businessId: business.id, fullName: "Ana Rodríguez", phone: "1166778899" } }),
-    prisma.client.create({ data: { businessId: business.id, fullName: "Florencia López", phone: "1177889900" } }),
-    prisma.client.create({ data: { businessId: business.id, fullName: "Julieta Moreno", phone: "1188990011" } }),
-    prisma.client.create({ data: { businessId: business.id, fullName: "Romina Sosa", phone: "1199001122" } }),
-    prisma.client.create({ data: { businessId: business.id, fullName: "Gabriela Núñez", phone: "1100112233" } }),
-    prisma.client.create({ data: { businessId: business.id, fullName: "Daniela Ruiz", phone: "1111223344" } }),
-    prisma.client.create({ data: { businessId: business.id, fullName: "Paula Vega", phone: "1112233445" } }),
-    prisma.client.create({ data: { businessId: business.id, fullName: "Sofía Herrera", phone: "1123344556" } }),
+    prisma.client.create({ data: { businessId: business.id, fullName: "Lucía Fernández", phone: "+54 11 2233-4455", email: "lucia@mail.com" } }),
+    prisma.client.create({ data: { businessId: business.id, fullName: "Camila Torres", phone: "+54 11 3344-5566" } }),
+    prisma.client.create({ data: { businessId: business.id, fullName: "Valentina Díaz", phone: "+54 11 4455-6677" } }),
+    prisma.client.create({ data: { businessId: business.id, fullName: "Martina Gómez", phone: "+54 11 5566-7788" } }),
+    prisma.client.create({ data: { businessId: business.id, fullName: "Ana Rodríguez", phone: "+54 11 6677-8899" } }),
+    prisma.client.create({ data: { businessId: business.id, fullName: "Florencia López", phone: "+54 11 7788-9900" } }),
+    prisma.client.create({ data: { businessId: business.id, fullName: "Julieta Moreno", phone: "+54 11 8899-0011" } }),
+    prisma.client.create({ data: { businessId: business.id, fullName: "Romina Sosa", phone: "+54 11 9900-1122" } }),
+    prisma.client.create({ data: { businessId: business.id, fullName: "Gabriela Núñez", phone: "+54 11 0011-2233" } }),
+    prisma.client.create({ data: { businessId: business.id, fullName: "Daniela Ruiz", phone: "+54 11 1122-3344" } }),
+    prisma.client.create({ data: { businessId: business.id, fullName: "Paula Vega", phone: "+54 11 2233-4456" } }),
+    prisma.client.create({ data: { businessId: business.id, fullName: "Sofía Herrera", phone: "+54 11 3344-5567" } }),
   ]);
   console.log(`✓ ${clients.length} clientes creados`);
 

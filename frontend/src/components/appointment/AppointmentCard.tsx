@@ -121,6 +121,9 @@ export default function AppointmentCard({
   if (compact) {
     return (
       <div
+        role="button"
+        tabIndex={0}
+        aria-label={`${appt.client.fullName} — ${appt.service.name} ${format(parseISO(appt.startAt), "HH:mm")}`}
         className={`absolute overflow-hidden rounded border-l-2 px-1.5 py-1 text-xs leading-tight cursor-pointer transition-shadow hover:shadow-sm ${statusUi.cardClass}`}
         style={{
           top: `${top}px`,
@@ -132,6 +135,13 @@ export default function AppointmentCard({
         onClick={(e) => {
           e.stopPropagation();
           onClick(appt);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            e.stopPropagation();
+            onClick(appt);
+          }
         }}
       >
         <div className="flex items-center gap-1">
@@ -162,6 +172,9 @@ export default function AppointmentCard({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={`${appt.client.fullName} — ${appt.service.name} ${format(parseISO(appt.startAt), "HH:mm")}–${format(parseISO(appt.endAt), "HH:mm")}, ${statusUi.label}`}
       className={`absolute left-1 right-1 z-10 overflow-hidden rounded-md border-l-[3px] text-xs cursor-pointer transition-all hover:shadow-md ${statusUi.cardClass}`}
       style={{
         top: `${top}px`,
@@ -173,6 +186,13 @@ export default function AppointmentCard({
       onClick={(e) => {
         e.stopPropagation();
         onClick(appt);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          e.stopPropagation();
+          onClick(appt);
+        }
       }}
     >
       {isShort ? (

@@ -36,17 +36,17 @@ export default function RevenueBreakdownCard({
           ) : (
             <div className="mt-4 space-y-3 text-sm">
               <div className="flex items-center justify-between gap-3">
-                <span className="font-semibold text-slate-700 text-xl">
+                <span className="text-slate-500">Señas</span>
+                <span className="font-semibold text-slate-700 text-xl tabular-nums">
                   {formatCurrency(deposit)}
                 </span>
-                <span className="text-slate-500">Señas</span>
               </div>
 
               <div className="flex items-center justify-between gap-3">
-                <span className="font-semibold text-slate-700 text-xl">
+                <span className="text-slate-500">Caja</span>
+                <span className="font-semibold text-slate-700 text-xl tabular-nums">
                   {formatCurrency(cash)}
                 </span>
-                <span className="text-slate-500">Caja</span>
               </div>
             </div>
           )}

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown } from "lucide-react";
 
 type Option = {
@@ -35,17 +36,50 @@ export default function CustomSelect({
   helperText,
 }: Props) {
   const [open, setOpen] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({
+    top: 0,
+    left: 0,
+    width: 0,
+  });
+
   const boxRef = useRef<HTMLDivElement | null>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   const selectedOption = useMemo(
     () => options.find((option) => option.value === value),
     [options, value]
   );
 
+  const updateDropdownPosition = () => {
+    const box = boxRef.current;
+    if (!box) return;
+
+    const rect = box.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const dropdownHeight = 288; // max-h-72
+    const gap = 4;
+
+    const spaceBelow = viewportHeight - rect.bottom;
+    const shouldOpenUpwards =
+      spaceBelow < dropdownHeight && rect.top > spaceBelow;
+
+    const top = shouldOpenUpwards
+      ? Math.max(8, rect.top - dropdownHeight - gap)
+      : rect.bottom + gap;
+
+    setDropdownPosition({
+      top,
+      left: rect.left,
+      width: rect.width,
+    });
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (!boxRef.current) return;
-      if (!boxRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const clickedInsideBox = boxRef.current?.contains(target);
+      const clickedInsideDropdown = dropdownRef.current?.contains(target);
+      if (!clickedInsideBox && !clickedInsideDropdown) {
         setOpen(false);
       }
     };
@@ -58,6 +92,23 @@ export default function CustomSelect({
     if (disabled) setOpen(false);
   }, [disabled]);
 
+  useEffect(() => {
+    if (!open) return;
+
+    updateDropdownPosition();
+
+    const handleResize = () => updateDropdownPosition();
+    const handleScroll = () => updateDropdownPosition();
+
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("scroll", handleScroll, true);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("scroll", handleScroll, true);
+    };
+  }, [open]);
+
   return (
     <div>
       {label && (
@@ -66,7 +117,7 @@ export default function CustomSelect({
         </label>
       )}
 
-      <div ref={boxRef} className="relative">
+      <div ref={boxRef}>
         <button
           type="button"
           onClick={() => {
@@ -102,9 +153,21 @@ export default function CustomSelect({
             }`}
           />
         </button>
+      </div>
 
-        {open && (
-          <div className="absolute z-30 mt-2 max-h-72 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+      {open &&
+        createPortal(
+          <div
+            ref={dropdownRef}
+            style={{
+              position: "fixed",
+              top: dropdownPosition.top,
+              left: dropdownPosition.left,
+              width: dropdownPosition.width,
+              zIndex: 9999,
+            }}
+            className="max-h-72 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
+          >
             <div className="max-h-72 overflow-y-auto py-1">
               {loading ? (
                 <div className="px-3 py-3 text-sm text-slate-500">
@@ -124,27 +187,27 @@ export default function CustomSelect({
                       type="button"
                       disabled={option.disabled}
                       onClick={() => {
-                            if (option.disabled) return;
-                            onChange(option.value);
-                            setOpen(false);
-                        }}
-                        className={`flex w-full cursor-pointer items-center justify-between gap-3 px-3 py-2 text-left transition-colors 
-                        ${isSelected && "bg-teal-50 hover:bg-teal-50"} 
+                        if (option.disabled) return;
+                        onChange(option.value);
+                        setOpen(false);
+                      }}
+                      className={`flex w-full cursor-pointer items-center justify-between gap-3 px-3 py-2 text-left transition-colors
+                        ${isSelected ? "bg-teal-50 hover:bg-teal-50" : ""}
                         ${
-                        option.disabled
+                          option.disabled
                             ? "cursor-not-allowed opacity-50"
                             : "hover:bg-slate-100"
-                      }`}
+                        }`}
                     >
-                        {option.color && (
-                            <div
-                            className="w-2.5 h-2.5 rounded-full"
-                            style={{
-                                background: option.color || "#0D9488",
-                            }}
-                            />
-                        )}
-                      <div className="min-w-0">
+                      {option.color && (
+                        <div
+                          className="w-2.5 h-2.5 rounded-full shrink-0"
+                          style={{
+                            background: option.color || "#0D9488",
+                          }}
+                        />
+                      )}
+                      <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-medium text-slate-800">
                           {option.label}
                         </div>
@@ -160,9 +223,9 @@ export default function CustomSelect({
                 })
               )}
             </div>
-          </div>
+          </div>,
+          document.body
         )}
-      </div>
 
       {helperText && <p className="mt-1 text-xs text-slate-500">{helperText}</p>}
     </div>

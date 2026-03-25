@@ -148,20 +148,22 @@ function renderSecondaryBubbles(
     const badge = getSecondaryBadge(appt);
 
     return (
-      <div
+      <button
         key={appt.id}
+        type="button"
         className={`absolute right-1 z-20 rounded-full text-[10px] font-semibold w-5 h-5 flex items-center justify-center transition-colors ${badge.className}`}
         style={{
           top: `${Math.min(top + index * 18, 42)}px`,
         }}
         title={`${badge.titlePrefix} · ${appt.client.fullName} · ${appt.service.name}`}
+        aria-label={`${badge.titlePrefix}: ${appt.client.fullName} — ${appt.service.name}`}
         onClick={(e) => {
           e.stopPropagation();
           handleAppointmentClick(appt);
         }}
       >
         {badge.label}
-      </div>
+      </button>
     );
   });
 }

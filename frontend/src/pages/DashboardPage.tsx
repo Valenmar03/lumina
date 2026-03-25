@@ -4,6 +4,7 @@ import {
   CalendarDays,
   DollarSign,
   Clock,
+  ArrowRight,
 } from "lucide-react";
 
 import SectionCard from "../components/dashboard/SectionCard";
@@ -370,8 +371,8 @@ export default function DashboardPage() {
                           {statusLabel}
                         </span>
 
-                        <span className="shrink-0 hidden sm:inline text-xs text-violet-600 font-medium">
-                          Resolver →
+                        <span className="shrink-0 hidden sm:inline text-xs text-violet-600 font-medium flex items-center gap-0.5">
+                          Resolver <ArrowRight className="h-3 w-3" />
                         </span>
                       </button>
                     );
@@ -427,7 +428,7 @@ export default function DashboardPage() {
             <DashboardSideSkeleton />
           ) : (
             <SectionCard title="Cierre de Caja">
-              {dashboardData.popularServices.length === 0 ? (
+              {dashboardData.stats.completedToday === 0 ? (
                 <div className="py-3 text-sm text-slate-400">
                   No hay turnos hoy
                 </div>

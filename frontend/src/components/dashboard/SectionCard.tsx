@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 type SectionCardProps = {
   title: string;
   actionLabel?: string;
+  actionTo?: string;
   onActionClick?: () => void;
   children: React.ReactNode;
 };
@@ -11,6 +12,8 @@ type SectionCardProps = {
 export default function SectionCard({
   title,
   actionLabel,
+  actionTo = "/agenda",
+  onActionClick,
   children,
 }: SectionCardProps) {
 
@@ -20,13 +23,24 @@ export default function SectionCard({
         <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
 
         {actionLabel && (
-          <Link
-            to={"/agenda"}
-            className="inline-flex items-center gap-1 text-sm font-medium text-teal-600 transition hover:text-teal-700 cursor-pointer"
-          >
-            {actionLabel}
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+          onActionClick ? (
+            <button
+              type="button"
+              onClick={onActionClick}
+              className="inline-flex items-center gap-1 text-sm font-medium text-teal-600 transition hover:text-teal-700"
+            >
+              {actionLabel}
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          ) : (
+            <Link
+              to={actionTo}
+              className="inline-flex items-center gap-1 text-sm font-medium text-teal-600 transition hover:text-teal-700"
+            >
+              {actionLabel}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          )
         )}
       </div>
 

@@ -210,8 +210,8 @@ const APPOINTMENT_STATUSES = [
   "NO_SHOW",
 ] as const;
 
-const DEPOSIT_METHODS = ["CASH", "TRANSFER", "CARD", "OTHER"] as const;
-const PAYMENT_METHODS = ["CASH", "TRANSFER", "CARD", "OTHER"] as const;
+const DEPOSIT_METHODS = ["CASH", "TRANSFER", "MERCADOPAGO", "OTHER"] as const;
+const PAYMENT_METHODS = ["CASH", "TRANSFER", "MERCADOPAGO", "OTHER"] as const;
 
 export const createAppointmentBody = z.object({
   professionalId: uuid,

@@ -1,5 +1,5 @@
-import { ChevronLeft, ChevronRight} from "lucide-react";
-import { format, parseISO, addDays } from "date-fns";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { format, parseISO, addDays, isToday } from "date-fns";
 import { es } from "date-fns/locale";
 import CustomDatePicker from "../ui/CustomDatePicker";
 
@@ -10,6 +10,7 @@ type Props = {
 
 export default function DashboardDateNavigator({ value, onChange }: Props) {
   const currentDate = parseISO(value);
+  const todayStr = format(new Date(), "yyyy-MM-dd");
 
   const handlePrev = () => {
     onChange(format(addDays(currentDate, -1), "yyyy-MM-dd"));
@@ -34,6 +35,7 @@ export default function DashboardDateNavigator({ value, onChange }: Props) {
         <button
           type="button"
           onClick={handlePrev}
+          aria-label="Día anterior"
           className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -49,10 +51,21 @@ export default function DashboardDateNavigator({ value, onChange }: Props) {
         <button
           type="button"
           onClick={handleNext}
+          aria-label="Día siguiente"
           className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
+
+        {!isToday(currentDate) && (
+          <button
+            type="button"
+            onClick={() => onChange(todayStr)}
+            className="h-10 px-3 rounded-xl border border-slate-200 bg-white text-sm font-medium text-teal-600 transition hover:bg-slate-50"
+          >
+            Hoy
+          </button>
+        )}
       </div>
     </div>
   );

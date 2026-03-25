@@ -21,6 +21,7 @@ type Props = {
   selectedProfessionalId: string;
   selectedProfessional: Professional | null;
   professionals: Professional[];
+  isPro?: boolean;
   handleSlotClick: (
     date: Date,
     time: string,
@@ -40,6 +41,7 @@ export default function MobileAgenda({
     selectedProfessionalId,
     selectedProfessional,
     professionals,
+    isPro = false,
     setSelectedProfessionalId,
     handleSlotClick,
     handleAppointmentClick,
@@ -61,7 +63,9 @@ export default function MobileAgenda({
         <div className="p-3 space-y-3">
           <div className="flex items-center justify-between gap-2">
             <button
+              type="button"
               onClick={() => navigate(-1)}
+              aria-label="Período anterior"
               className="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -79,7 +83,9 @@ export default function MobileAgenda({
             </div>
 
             <button
+              type="button"
               onClick={() => navigate(1)}
+              aria-label="Período siguiente"
               className="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white"
             >
               <ChevronRight className="w-4 h-4" />
@@ -111,14 +117,17 @@ export default function MobileAgenda({
             </div>
 
             <button
+              type="button"
               onClick={() => handleSlotClick(currentDate, "09:00")}
+              aria-label="Nuevo turno"
               className="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-teal-600 text-white"
             >
               <Plus className="w-4 h-4" />
             </button>
           </div>
 
-            <div>
+            {!isPro && (
+              <div>
                 <CustomSelect
                   value={selectedProfessionalId}
                   onChange={setSelectedProfessionalId}
@@ -135,7 +144,8 @@ export default function MobileAgenda({
                   })),
                   ]}
                 />
-            </div>
+              </div>
+            )}
         </div>
 
         {view === "week" && (

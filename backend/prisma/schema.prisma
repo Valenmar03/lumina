@@ -46,6 +46,9 @@ model Business {
   slug               String             @unique
   timezone           String             @default("America/Argentina/Buenos_Aires")
   mpAccessToken      String?
+  waPhoneNumberId  String?
+  waAccessToken    String?
+  waReminderHours  Int?
   plan               PlanType           @default(STARTER)
   subscriptionStatus SubscriptionStatus @default(TRIAL)
   createdAt          DateTime           @default(now())
@@ -70,6 +73,7 @@ model User {
   passwordHash  String
   role          UserRole @default(OWNER)
   emailVerified Boolean  @default(false)
+  phone            String?
   createdAt     DateTime @default(now())
 
   business           Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
@@ -244,6 +248,7 @@ model Appointment {
   finalPaymentMethod PaymentMethod?
   finalPaidAt        DateTime?
   notes              String?
+  reminderSentAt     DateTime?
   createdAt          DateTime          @default(now())
 
   business           Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)

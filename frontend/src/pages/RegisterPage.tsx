@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import type { FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
-import { ChevronDown, Check } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import { ChevronDown, Check, Loader2 } from "lucide-react";
 import PasswordInput from "../components/ui/PasswordInput";
 import AR from "country-flag-icons/react/3x2/AR";
 import MX from "country-flag-icons/react/3x2/MX";
@@ -23,25 +23,37 @@ const TIMEZONES = [
   { Flag: VE, label: "Venezuela", value: "America/Caracas" },
 ];
 
-function TimezoneSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function TimezoneSelect({ value, onChange, id }: { value: string; onChange: (v: string) => void; id?: string }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const listboxId = `${id ?? "timezone"}-listbox`;
   const selected = TIMEZONES.find((tz) => tz.value === value) ?? TIMEZONES[0];
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
     document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, []);
 
   return (
     <div ref={ref} className="relative">
       <button
+        id={id}
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition text-left"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={listboxId}
+        className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg border border-slate-200 text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition text-left"
       >
         <selected.Flag className="w-5 h-auto rounded-sm shrink-0" />
         <span className="flex-1">{selected.label}</span>
@@ -49,20 +61,28 @@ function TimezoneSelect({ value, onChange }: { value: string; onChange: (v: stri
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden">
+        <ul
+          id={listboxId}
+          role="listbox"
+          aria-label="Zona horaria"
+          className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden"
+        >
           {TIMEZONES.map((tz) => (
-            <button
+            <li
               key={tz.value}
-              type="button"
+              role="option"
+              aria-selected={tz.value === value}
               onClick={() => { onChange(tz.value); setOpen(false); }}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { onChange(tz.value); setOpen(false); } }}
+              tabIndex={0}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer focus:outline-none focus:bg-slate-50"
             >
               <tz.Flag className="w-5 h-auto rounded-sm shrink-0" />
               <span className="flex-1">{tz.label}</span>
-              {tz.value === value && <Check className="w-3.5 h-3.5 text-teal-600" />}
-            </button>
+              {tz.value === value && <Check className="w-3.5 h-3.5 text-teal-600" aria-hidden="true" />}
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );
@@ -150,7 +170,7 @@ export default function RegisterPage() {
                 required
                 value={businessName}
                 onChange={(e) => handleBusinessNameChange(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+                className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
                 placeholder="Peluquería María"
               />
             </div>
@@ -160,7 +180,7 @@ export default function RegisterPage() {
                 URL del negocio
               </label>
               <div className="flex items-center rounded-lg border border-slate-200 overflow-hidden focus-within:ring-2 focus-within:ring-teal-500">
-                <span className="px-3 py-2 text-sm text-slate-400 bg-slate-50 border-r border-slate-200 whitespace-nowrap">
+                <span className="px-3 py-2.5 text-sm text-slate-400 bg-slate-50 border-r border-slate-200 whitespace-nowrap">
                   app.caleio.app/
                 </span>
                 <input
@@ -169,7 +189,7 @@ export default function RegisterPage() {
                   required
                   value={slug}
                   onChange={(e) => handleSlugChange(e.target.value)}
-                  className="flex-1 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none"
+                  className="flex-1 px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none"
                   placeholder="peluqueria-maria"
                 />
               </div>
@@ -181,10 +201,10 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-600 mb-1">
+              <label htmlFor="timezone" className="block text-sm font-medium text-slate-600 mb-1">
                 País / Zona horaria
               </label>
-              <TimezoneSelect value={timezone} onChange={setTimezone} />
+              <TimezoneSelect id="timezone" value={timezone} onChange={setTimezone} />
             </div>
 
             <div>
@@ -198,7 +218,7 @@ export default function RegisterPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+                className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
                 placeholder="tu@email.com"
               />
             </div>
@@ -211,15 +231,17 @@ export default function RegisterPage() {
                 id="password"
                 autoComplete="new-password"
                 required
+                minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+                className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
                 placeholder="••••••••"
               />
+              <p className="mt-1 text-xs text-slate-400">Mínimo 8 caracteres</p>
             </div>
 
             {error && (
-              <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+              <p role="alert" className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
                 {error}
               </p>
             )}
@@ -227,15 +249,16 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-2 px-4 rounded-lg bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
+              className="w-full py-2.5 px-4 rounded-lg bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 disabled:opacity-60 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
             >
+              {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
               {isSubmitting ? "Registrando..." : "Crear negocio"}
             </button>
             <p className="text-center text-sm text-slate-500">
               ¿Ya tenés cuenta?{" "}
-              <a href="/login" className="text-teal-600 hover:underline font-medium">
+              <Link to="/login" className="text-teal-600 hover:underline font-medium">
                 Iniciá sesión
-              </a>
+              </Link>
             </p>
           </form>
           </>

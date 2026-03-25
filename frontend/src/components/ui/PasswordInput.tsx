@@ -16,7 +16,7 @@ export default function PasswordInput({ className, ...props }: PasswordInputProp
       <button
         type="button"
         onClick={() => setShow((v) => !v)}
-        tabIndex={-1}
+        aria-label={show ? "Ocultar contraseña" : "Mostrar contraseña"}
         className="absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-400 hover:text-slate-600 transition-colors"
       >
         {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

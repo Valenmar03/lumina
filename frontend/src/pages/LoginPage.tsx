@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useParams, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import PasswordInput from "../components/ui/PasswordInput";
+import { Mail, ArrowLeft, Loader2 } from "lucide-react";
 
 const API_URL = "/api";
 
@@ -80,8 +81,9 @@ export default function LoginPage() {
         </div>
 
         {justRegistered && (
-          <div className="mb-4 bg-teal-50 border border-teal-200 rounded-xl px-4 py-3 text-sm text-teal-800">
-            📬 Revisá tu email{registeredEmail ? ` (${registeredEmail})` : ""} para confirmar tu cuenta antes de iniciar sesión.
+          <div role="status" className="mb-4 bg-teal-50 border border-teal-200 rounded-xl px-4 py-3 text-sm text-teal-800 flex items-start gap-2">
+            <Mail className="w-4 h-4 mt-0.5 shrink-0" />
+            <span>Revisá tu email{registeredEmail ? ` (${registeredEmail})` : ""} para confirmar tu cuenta antes de iniciar sesión.</span>
           </div>
         )}
 
@@ -95,7 +97,7 @@ export default function LoginPage() {
                     URL del negocio
                   </label>
                   <div className="flex items-center rounded-lg border border-slate-200 overflow-hidden focus-within:ring-2 focus-within:ring-teal-500">
-                    <span className="px-3 py-2 text-sm text-slate-400 bg-slate-50 border-r border-slate-200 whitespace-nowrap">
+                    <span className="px-3 py-2.5 text-sm text-slate-400 bg-slate-50 border-r border-slate-200 whitespace-nowrap">
                       app.caleio.app/
                     </span>
                     <input
@@ -104,7 +106,7 @@ export default function LoginPage() {
                       required
                       value={slugInput}
                       onChange={(e) => setSlugInput(e.target.value)}
-                      className="flex-1 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none"
+                      className="flex-1 px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none"
                       placeholder="mi-negocio"
                       autoFocus
                     />
@@ -112,15 +114,15 @@ export default function LoginPage() {
                 </div>
                 <button
                   type="submit"
-                  className="w-full py-2 px-4 rounded-lg bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 transition"
+                  className="w-full py-2.5 px-4 rounded-lg bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 transition"
                 >
                   Continuar
                 </button>
                 <p className="text-center text-sm text-slate-500">
                   ¿Sos nuevo?{" "}
-                  <a href="/register" className="text-teal-600 hover:underline font-medium">
+                  <Link to="/register" className="text-teal-600 hover:underline font-medium">
                     Registrá tu negocio
-                  </a>
+                  </Link>
                 </p>
               </form>
             </>
@@ -144,7 +146,7 @@ export default function LoginPage() {
                     required
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+                    className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
                     placeholder="tu@email.com o nombre de usuario"
                     autoFocus
                   />
@@ -159,13 +161,13 @@ export default function LoginPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+                    className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
                     placeholder="••••••••"
                   />
                 </div>
 
                 {error && (
-                  <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+                  <p role="alert" className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
                     {error}
                   </p>
                 )}
@@ -173,21 +175,23 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting || !businessName}
-                  className="w-full py-2 px-4 rounded-lg bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                  className="w-full py-2.5 px-4 rounded-lg bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 disabled:opacity-60 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
                 >
+                  {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                   {isSubmitting ? "Ingresando..." : "Ingresar"}
                 </button>
                 <div className="flex justify-between">
                   <button
                     type="button"
                     onClick={() => navigate("/login")}
-                    className="text-sm text-slate-400 hover:text-slate-600 transition"
+                    className="flex items-center gap-1 text-sm text-slate-400 hover:text-slate-600 transition"
                   >
-                    ← Cambiar negocio
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    Cambiar negocio
                   </button>
-                  <a href="/olvide-password" className="text-sm text-teal-600 hover:underline">
+                  <Link to="/olvide-password" className="text-sm text-teal-600 hover:underline">
                     Olvidé mi contraseña
-                  </a>
+                  </Link>
                 </div>
               </form>
             </>

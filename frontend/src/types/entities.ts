@@ -36,6 +36,8 @@ export type Business = {
   waPhoneNumberId?: string | null;
   waAccessToken?: string | null;
   waReminderHours?: number | null;
+  emailNotificationsEnabled?: boolean | null;
+  emailReminderHours?: number | null;
 };
 
 //CLIENT

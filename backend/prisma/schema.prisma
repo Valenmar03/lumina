@@ -49,6 +49,8 @@ model Business {
   waPhoneNumberId  String?
   waAccessToken    String?
   waReminderHours  Int?
+  emailNotificationsEnabled Boolean  @default(true)
+  emailReminderHours        Int?     @default(24)
   plan               PlanType           @default(STARTER)
   subscriptionStatus SubscriptionStatus @default(TRIAL)
   createdAt          DateTime           @default(now())

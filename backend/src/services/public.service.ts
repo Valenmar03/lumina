@@ -3,6 +3,7 @@ import { ProfessionalService } from "./professionals.service";
 import { AppointmentService } from "./appointments.service";
 import { createMPPreference, getMPPayment } from "./mercadopago.service";
 import { sendTemplate, formatWaDate, formatWaTime } from "./whatsapp.service";
+import { sendAppointmentConfirmed, sendNewAppointmentOwner } from "./email.service";
 
 function notFound(message: string) {
   const err = new Error(message) as Error & { status?: number };
@@ -24,6 +25,7 @@ async function getBusinessBySlug(slug: string) {
       mpAccessToken: true,
       waPhoneNumberId: true,
       waAccessToken: true,
+      emailNotificationsEnabled: true,
     },
   });
   if (!business) throw notFound("Business not found");
@@ -196,40 +198,62 @@ export async function createPublicAppointment(
     startAt,
   });
 
-  // Notificaciones WA: turno confirmado + aviso al dueño
+  // Notificaciones: turno confirmado + aviso al dueño
   const professionalName = await prisma.professional
     .findUnique({ where: { id: professionalId }, select: { name: true } })
     .then((p) => p?.name ?? "");
 
-  if (business.waAccessToken && business.waPhoneNumberId) {
-    const dateStr = formatWaDate(new Date(startAt), business.timezone);
-    const timeStr = formatWaTime(new Date(startAt), business.timezone);
+  const dateStr = formatWaDate(new Date(startAt), business.timezone);
+  const timeStr = formatWaTime(new Date(startAt), business.timezone);
 
-    // Al cliente
-    if (client.phone) {
-      sendTemplate({
-        accessToken: business.waAccessToken,
-        phoneNumberId: business.waPhoneNumberId,
-        to: client.phone,
-        templateName: "turno_confirmado",
-        variables: [client.fullName, service.name, professionalName, dateStr, timeStr, business.name],
-      }).catch(() => {});
-    }
+  // WA al cliente
+  if (business.waAccessToken && business.waPhoneNumberId && client.phone) {
+    sendTemplate({
+      accessToken: business.waAccessToken,
+      phoneNumberId: business.waPhoneNumberId,
+      to: client.phone,
+      templateName: "turno_confirmado",
+      variables: [client.fullName, service.name, professionalName, dateStr, timeStr, business.name],
+    }).catch(() => {});
+  }
 
-    // Al dueño
-    prisma.user
-      .findFirst({ where: { businessId: business.id, role: "OWNER" }, select: { phone: true } })
-      .then((owner) => {
-        if (!owner?.phone) return;
+  // WA + email al dueño
+  prisma.user
+    .findFirst({ where: { businessId: business.id, role: "OWNER" }, select: { phone: true, email: true } })
+    .then((owner) => {
+      if (!owner) return;
+      if (owner.phone && business.waAccessToken && business.waPhoneNumberId) {
         sendTemplate({
-          accessToken: business.waAccessToken!,
-          phoneNumberId: business.waPhoneNumberId!,
+          accessToken: business.waAccessToken,
+          phoneNumberId: business.waPhoneNumberId,
           to: owner.phone,
           templateName: "nuevo_turno_negocio",
           variables: [client.fullName, service.name, professionalName, dateStr, timeStr],
         });
-      })
-      .catch(() => {});
+      }
+      if (owner.email && business.emailNotificationsEnabled) {
+        sendNewAppointmentOwner(owner.email, {
+          clientName: client.fullName,
+          professionalName,
+          serviceName: service.name,
+          date: dateStr,
+          time: timeStr,
+          businessName: business.name,
+        });
+      }
+    })
+    .catch(() => {});
+
+  // Email al cliente
+  if (business.emailNotificationsEnabled && client.email) {
+    sendAppointmentConfirmed(client.email, {
+      clientName: client.fullName,
+      professionalName,
+      serviceName: service.name,
+      date: dateStr,
+      time: timeStr,
+      businessName: business.name,
+    });
   }
 
   return { appointment };
@@ -271,49 +295,60 @@ export async function confirmPublicPayment(slug: string, pendingBookingId: strin
   // Clean up pending booking
   await prisma.pendingBooking.delete({ where: { id: pendingBookingId } });
 
-  // Notificaciones WA post-pago
+  // Notificaciones post-pago
+  const [client, service, professional, owner] = await Promise.all([
+    prisma.client.findUnique({ where: { id: pending.clientId } }),
+    prisma.service.findUnique({ where: { id: pending.serviceId }, select: { name: true } }),
+    prisma.professional.findUnique({ where: { id: pending.professionalId }, select: { name: true } }),
+    prisma.user.findFirst({ where: { businessId: business.id, role: "OWNER" }, select: { phone: true, email: true } }),
+  ]);
+
+  const dateStr = formatWaDate(pending.startAt, business.timezone);
+  const timeStr = formatWaTime(pending.startAt, business.timezone);
+  const professionalName = professional?.name ?? "";
+  const serviceName = service?.name ?? "";
+
   if (business.waAccessToken && business.waPhoneNumberId) {
-    const [client, service, professional, owner] = await Promise.all([
-      prisma.client.findUnique({ where: { id: pending.clientId } }),
-      prisma.service.findUnique({ where: { id: pending.serviceId }, select: { name: true } }),
-      prisma.professional.findUnique({ where: { id: pending.professionalId }, select: { name: true } }),
-      prisma.user.findFirst({ where: { businessId: business.id, role: "OWNER" }, select: { phone: true } }),
-    ]);
-
-    const dateStr = formatWaDate(pending.startAt, business.timezone);
-    const timeStr = formatWaTime(pending.startAt, business.timezone);
-
     if (client?.phone) {
       sendTemplate({
         accessToken: business.waAccessToken,
         phoneNumberId: business.waPhoneNumberId,
         to: client.phone,
         templateName: "turno_confirmado",
-        variables: [
-          client.fullName,
-          service?.name ?? "",
-          professional?.name ?? "",
-          dateStr,
-          timeStr,
-          business.name,
-        ],
+        variables: [client?.fullName ?? "", serviceName, professionalName, dateStr, timeStr, business.name],
       }).catch(() => {});
     }
-
     if (owner?.phone) {
       sendTemplate({
         accessToken: business.waAccessToken,
         phoneNumberId: business.waPhoneNumberId,
         to: owner.phone,
         templateName: "nuevo_turno_negocio",
-        variables: [
-          client?.fullName ?? "",
-          service?.name ?? "",
-          professional?.name ?? "",
-          dateStr,
-          timeStr,
-        ],
+        variables: [client?.fullName ?? "", serviceName, professionalName, dateStr, timeStr],
       }).catch(() => {});
+    }
+  }
+
+  if (business.emailNotificationsEnabled) {
+    if (client?.email) {
+      sendAppointmentConfirmed(client.email, {
+        clientName: client.fullName,
+        professionalName,
+        serviceName,
+        date: dateStr,
+        time: timeStr,
+        businessName: business.name,
+      });
+    }
+    if (owner?.email) {
+      sendNewAppointmentOwner(owner.email, {
+        clientName: client?.fullName ?? "",
+        professionalName,
+        serviceName,
+        date: dateStr,
+        time: timeStr,
+        businessName: business.name,
+      });
     }
   }
 

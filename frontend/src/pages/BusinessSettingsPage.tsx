@@ -18,6 +18,7 @@ import {
   ExternalLink,
   Info,
   MessageCircle,
+  Mail,
 } from "lucide-react";
 import { apiFetch } from "../services/api";
 import PasswordInput from "../components/ui/PasswordInput";
@@ -300,6 +301,13 @@ export default function BusinessSettingsPage() {
               onSave={async (phone) => {
                 await apiFetch("/auth/me", { method: "PATCH", body: JSON.stringify({ phone }) });
               }}
+            />
+
+            {/* Notificaciones por email */}
+            <EmailNotificationsSection
+              currentEnabled={business.emailNotificationsEnabled ?? true}
+              currentReminderHours={business.emailReminderHours ?? null}
+              onSave={(data) => update(data).then(() => {})}
             />
 
             {/* Plan y suscripción */}
@@ -617,6 +625,15 @@ const WA_REMINDER_OPTIONS = [
   { value: "48", label: "48 horas antes" },
 ];
 
+const EMAIL_REMINDER_OPTIONS = [
+  { value: "2", label: "2 horas antes" },
+  { value: "4", label: "4 horas antes" },
+  { value: "8", label: "8 horas antes" },
+  { value: "12", label: "12 horas antes" },
+  { value: "24", label: "24 horas antes" },
+  { value: "48", label: "48 horas antes" },
+];
+
 function WhatsAppSection({
   currentPhoneNumberId,
   currentAccessToken,
@@ -922,6 +939,119 @@ function OwnerPhoneSection({
           <p className="flex items-center gap-1.5 text-xs text-emerald-600 mt-2">
             <Check className="w-3.5 h-3.5 shrink-0" />
             Número guardado correctamente
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function EmailNotificationsSection({
+  currentEnabled,
+  currentReminderHours,
+  onSave,
+}: {
+  currentEnabled: boolean;
+  currentReminderHours: number | null;
+  onSave: (data: { emailNotificationsEnabled: boolean; emailReminderHours: number | null }) => Promise<void>;
+}) {
+  const [enabled, setEnabled] = useState(currentEnabled);
+  const [reminderHours, setReminderHours] = useState(
+    currentReminderHours ? String(currentReminderHours) : ""
+  );
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSave = async (newEnabled: boolean, newReminderHours: string) => {
+    setSaving(true);
+    setError(null);
+    try {
+      await onSave({
+        emailNotificationsEnabled: newEnabled,
+        emailReminderHours: newReminderHours ? Number(newReminderHours) : null,
+      });
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 2000);
+    } catch {
+      setError("No se pudo guardar la configuración.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleToggle = () => {
+    const newEnabled = !enabled;
+    setEnabled(newEnabled);
+    handleSave(newEnabled, reminderHours);
+  };
+
+  const handleReminderChange = (v: string) => {
+    setReminderHours(v);
+    handleSave(enabled, v);
+  };
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="flex items-center gap-2.5 px-6 py-4 border-b border-slate-100">
+        <Mail className="w-4 h-4 text-slate-400" />
+        <h2 className="text-sm font-semibold text-slate-700">Notificaciones por email</h2>
+        {enabled && (
+          <span className="ml-auto text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+            Activo
+          </span>
+        )}
+      </div>
+      <div className="px-6 py-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-slate-700">Enviar notificaciones por email</p>
+            <p className="text-xs text-slate-400 mt-0.5">Los emails se envían desde noreply@caleio.app</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleToggle}
+            disabled={saving}
+            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none disabled:opacity-50 ${
+              enabled ? "bg-teal-600" : "bg-slate-200"
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                enabled ? "translate-x-4" : "translate-x-0"
+              }`}
+            />
+          </button>
+        </div>
+
+        {enabled && (
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">
+              Recordatorio automático
+            </label>
+            <CustomSelect
+              placeholder="Sin recordatorio"
+              value={reminderHours}
+              onChange={handleReminderChange}
+              options={EMAIL_REMINDER_OPTIONS}
+            />
+          </div>
+        )}
+
+        <p className="text-xs text-slate-400 italic">
+          Activar WhatsApp desactivará las notificaciones por email automáticamente.
+        </p>
+
+        {error && (
+          <p className="flex items-center gap-1 text-xs text-red-600">
+            <AlertCircle className="w-3.5 h-3.5" />
+            {error}
+          </p>
+        )}
+        {success && !saving && (
+          <p className="flex items-center gap-1 text-xs text-emerald-600">
+            <Check className="w-3.5 h-3.5" />
+            Guardado
           </p>
         )}
       </div>

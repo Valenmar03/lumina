@@ -69,6 +69,8 @@ export const updateBusinessBody = z.object({
   waPhoneNumberId: z.string().trim().max(50).optional().nullable(),
   waAccessToken: z.string().trim().max(500).optional().nullable(),
   waReminderHours: z.number().int().min(1).max(168).optional().nullable(),
+  emailNotificationsEnabled: z.boolean().optional(),
+  emailReminderHours: z.number().int().min(1).max(168).optional().nullable(),
 });
 
 // ─── Services ─────────────────────────────────────────────────────────────────

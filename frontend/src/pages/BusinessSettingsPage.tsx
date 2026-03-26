@@ -196,7 +196,6 @@ function EditableField({
 
 export default function BusinessSettingsPage() {
   const currentDate = new Date();
-  const { user } = useAuth();
   const { data: businessData, isLoading } = useBusiness();
   const { mutateAsync: update } = useUpdateBusiness();
 
@@ -634,7 +633,8 @@ const EMAIL_REMINDER_OPTIONS = [
   { value: "48", label: "48 horas antes" },
 ];
 
-function WhatsAppSection({
+// WhatsAppSection removed — coming soon placeholder used in JSX instead
+function _WhatsAppSection({
   currentPhoneNumberId,
   currentAccessToken,
   currentReminderHours,
@@ -844,7 +844,7 @@ function WhatsAppSection({
   );
 }
 
-function OwnerPhoneSection({
+function _OwnerPhoneSection({
   currentPhone,
   onSave,
 }: {

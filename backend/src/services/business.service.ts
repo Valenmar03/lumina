@@ -19,6 +19,8 @@ export const businessService = {
       waPhoneNumberId?: string | null;
       waAccessToken?: string | null;
       waReminderHours?: number | null;
+      emailNotificationsEnabled?: boolean;
+      emailReminderHours?: number | null;
     }
   ) {
     const update: Record<string, unknown> = {};
@@ -46,6 +48,8 @@ export const businessService = {
     if (data.waPhoneNumberId !== undefined) update.waPhoneNumberId = data.waPhoneNumberId ?? null;
     if (data.waAccessToken !== undefined) update.waAccessToken = data.waAccessToken ?? null;
     if (data.waReminderHours !== undefined) update.waReminderHours = data.waReminderHours ?? null;
+    if (data.emailNotificationsEnabled !== undefined) update.emailNotificationsEnabled = data.emailNotificationsEnabled;
+    if (data.emailReminderHours !== undefined) update.emailReminderHours = data.emailReminderHours ?? null;
 
     return prisma.business.update({ where: { id: businessId }, data: update });
   },

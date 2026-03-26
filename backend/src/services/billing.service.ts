@@ -52,8 +52,12 @@ export async function createCheckoutSession(
 ): Promise<string> {
   const business = await prisma.business.findUniqueOrThrow({
     where: { id: businessId },
-    select: { currency: true },
+    select: { currency: true, stripeSubscriptionId: true },
   });
+
+  if (business.stripeSubscriptionId) {
+    throw Object.assign(new Error("Business already has an active subscription"), { statusCode: 409 });
+  }
 
   const customerId = await getOrCreateStripeCustomer(businessId);
   const activeCount = await countActiveProfessionals(businessId);
@@ -164,8 +168,8 @@ export async function getBillingStatus(businessId: string) {
       if (periodEnd) {
         nextBillingDate = new Date(periodEnd * 1000).toISOString();
       }
-    } catch {
-      // non-blocking
+    } catch (err) {
+      console.warn("[billing] Failed to retrieve subscription period end:", err);
     }
   }
 

@@ -64,3 +64,128 @@ export async function sendPasswordResetEmail(email: string, token: string): Prom
     </div>
   `);
 }
+
+// ─── Appointment notifications ────────────────────────────────────────────────
+
+interface AppointmentEmailData {
+  clientName: string;
+  professionalName: string;
+  serviceName: string;
+  date: string; // "dd/MM/yyyy"
+  time: string; // "HH:mm"
+  businessName: string;
+}
+
+function appointmentDetailsTable(data: AppointmentEmailData): string {
+  return `
+    <table style="width: 100%; font-size: 14px; border-collapse: collapse; margin-top: 16px;">
+      <tr>
+        <td style="padding: 6px 0; color: #64748b; width: 40%; vertical-align: top;">Servicio</td>
+        <td style="padding: 6px 0; font-weight: 500; color: #1e293b;">${data.serviceName}</td>
+      </tr>
+      <tr>
+        <td style="padding: 6px 0; color: #64748b; vertical-align: top;">Profesional</td>
+        <td style="padding: 6px 0; font-weight: 500; color: #1e293b;">${data.professionalName}</td>
+      </tr>
+      <tr>
+        <td style="padding: 6px 0; color: #64748b; vertical-align: top;">Fecha</td>
+        <td style="padding: 6px 0; font-weight: 500; color: #1e293b;">${data.date}</td>
+      </tr>
+      <tr>
+        <td style="padding: 6px 0; color: #64748b; vertical-align: top;">Hora</td>
+        <td style="padding: 6px 0; font-weight: 500; color: #1e293b;">${data.time}</td>
+      </tr>
+    </table>
+    <p style="color: #94a3b8; font-size: 13px; margin-top: 24px;">
+      Este mensaje fue enviado por ${data.businessName} a través de Caleio.
+    </p>
+  `;
+}
+
+function appointmentEmailWrapper(body: string): string {
+  return `<div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; color: #1e293b;">${body}</div>`;
+}
+
+export async function sendAppointmentConfirmed(to: string, data: AppointmentEmailData): Promise<void> {
+  try {
+    await sendEmail(
+      to,
+      `Tu turno está confirmado — ${data.businessName}`,
+      appointmentEmailWrapper(`
+        <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">Turno confirmado</h2>
+        <p style="color: #475569; margin-bottom: 4px;">Hola ${data.clientName},</p>
+        <p style="color: #475569;">Tu turno ha sido confirmado.</p>
+        ${appointmentDetailsTable(data)}
+      `)
+    );
+  } catch (err) {
+    console.error("[email] sendAppointmentConfirmed error:", err);
+  }
+}
+
+export async function sendAppointmentCanceled(to: string, data: AppointmentEmailData): Promise<void> {
+  try {
+    await sendEmail(
+      to,
+      `Tu turno fue cancelado — ${data.businessName}`,
+      appointmentEmailWrapper(`
+        <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">Turno cancelado</h2>
+        <p style="color: #475569; margin-bottom: 4px;">Hola ${data.clientName},</p>
+        <p style="color: #475569;">Tu turno ha sido cancelado.</p>
+        ${appointmentDetailsTable(data)}
+      `)
+    );
+  } catch (err) {
+    console.error("[email] sendAppointmentCanceled error:", err);
+  }
+}
+
+export async function sendAppointmentModified(to: string, data: AppointmentEmailData): Promise<void> {
+  try {
+    await sendEmail(
+      to,
+      `Tu turno fue modificado — ${data.businessName}`,
+      appointmentEmailWrapper(`
+        <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">Turno modificado</h2>
+        <p style="color: #475569; margin-bottom: 4px;">Hola ${data.clientName},</p>
+        <p style="color: #475569;">Los datos de tu turno fueron actualizados.</p>
+        ${appointmentDetailsTable(data)}
+      `)
+    );
+  } catch (err) {
+    console.error("[email] sendAppointmentModified error:", err);
+  }
+}
+
+export async function sendAppointmentReminder(to: string, data: AppointmentEmailData): Promise<void> {
+  try {
+    await sendEmail(
+      to,
+      `Recordatorio de turno — ${data.businessName}`,
+      appointmentEmailWrapper(`
+        <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">Recordatorio de turno</h2>
+        <p style="color: #475569; margin-bottom: 4px;">Hola ${data.clientName},</p>
+        <p style="color: #475569;">Te recordamos que tenés un turno programado.</p>
+        ${appointmentDetailsTable(data)}
+      `)
+    );
+  } catch (err) {
+    console.error("[email] sendAppointmentReminder error:", err);
+  }
+}
+
+export async function sendNewAppointmentOwner(to: string, data: AppointmentEmailData): Promise<void> {
+  try {
+    await sendEmail(
+      to,
+      `Nueva reserva — ${data.clientName}`,
+      appointmentEmailWrapper(`
+        <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">Nueva reserva recibida</h2>
+        <p style="color: #475569;">${data.clientName} agendó un turno.</p>
+        ${appointmentDetailsTable(data)}
+      `)
+    );
+  } catch (err) {
+    console.error("[email] sendNewAppointmentOwner error:", err);
+  }
+}

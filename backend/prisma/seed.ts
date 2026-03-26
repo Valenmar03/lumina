@@ -30,6 +30,8 @@ async function main() {
       timezone: "America/Argentina/Buenos_Aires",
       plan: "STARTER",
       subscriptionStatus: "TRIAL",
+      trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+      currency: "ARS",
     },
   });
   console.log(`✓ Business: ${business.name}`);

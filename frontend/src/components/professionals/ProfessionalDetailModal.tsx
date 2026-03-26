@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Clock3, Plus, Slash, Trash2, User2, X } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
@@ -10,7 +11,9 @@ import { useProfessionalServices, useUpdateProfessionalServices } from "../../ho
 import { useProfessionalSchedule } from "../../hooks/useProfessionalSchedule";
 import { useServices } from "../../hooks/useServices";
 import type { Professional, ConflictingAppointment } from "../../types/entities";
-import { useUpdateProfessional, useProfessionalUnavailabilities, useCreateUnavailability, useDeleteUnavailability } from "../../hooks/useProfessionals";
+import { useUpdateProfessional, useProfessionalUnavailabilities, useCreateUnavailability, useDeleteUnavailability, useProfessionals } from "../../hooks/useProfessionals";
+import { useBusiness } from "../../hooks/useBusiness";
+import { updateSubscriptionQuantity } from "../../services/billing.api";
 
 type Props = {
   open: boolean;
@@ -132,6 +135,12 @@ export default function ProfessionalDetailModal({
 
   const updateProfessionalMutation = useUpdateProfessional();
   const updateProfessionalServicesMutation = useUpdateProfessionalServices();
+
+  const { data: businessData } = useBusiness();
+  const { data: professionalsData } = useProfessionals();
+  const [showBillingConfirm, setShowBillingConfirm] = useState(false);
+  const [billingConfirmLoading, setBillingConfirmLoading] = useState(false);
+  const [billingConfirmError, setBillingConfirmError] = useState<string | null>(null);
 
   const {
     updateScheduleForDayAsync,
@@ -310,19 +319,11 @@ export default function ProfessionalDetailModal({
     deleteUnavailabilityMutation.isPending ||
     isUpdatingSchedule;
 
-  const handleSave = async () => {
+  const doSave = async () => {
     if (!professional) return;
 
     const trimmedName = name.trim();
-
-    if (!trimmedName) {
-      setNameError("El nombre del profesional es obligatorio");
-      return;
-    }
-
-    setNameError(null);
-
-    if (hasScheduleErrors) return;
+    if (!trimmedName) return; // defensive guard — validation should have caught this
 
     try {
       await updateProfessionalMutation.mutateAsync({
@@ -373,6 +374,34 @@ export default function ProfessionalDetailModal({
     } catch (error) {
       console.error(error);
     }
+  };
+
+  const handleSave = async () => {
+    if (!professional) return;
+
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      setNameError("El nombre del profesional es obligatorio");
+      return;
+    }
+
+    setNameError(null);
+
+    if (hasScheduleErrors) return;
+
+    const activePros = professionalsData?.professionals?.filter((p) => p.active) ?? [];
+    const currentActiveCount = activePros.length;
+    const isActivating = active === true && professional?.active === false;
+    const wouldExceedFree = currentActiveCount >= 2;
+    const hasActiveSubscription = businessData?.business?.subscriptionStatus === "ACTIVE";
+
+    if (isActivating && wouldExceedFree && hasActiveSubscription) {
+      setShowBillingConfirm(true);
+      return;
+    }
+
+    await doSave();
   };
 
   const nameInvalid = !name.trim();
@@ -792,6 +821,68 @@ export default function ProfessionalDetailModal({
         </div>
         </div>
       )}
+
+      {/* Modal de confirmación de billing */}
+      {showBillingConfirm && (() => {
+        const currency = businessData?.business?.currency ?? "ARS";
+        const basePrice = currency === "USD" ? 18 : 16000;
+        const extraPrice = currency === "USD" ? 7 : 7000;
+        const activePros = professionalsData?.professionals?.filter((p) => p.active) ?? [];
+        const currentActiveCount = activePros.length;
+        const newCount = currentActiveCount + 1;
+        const extraCount = Math.max(0, newCount - 2);
+        const totalMonthly = basePrice + extraCount * extraPrice;
+        const formatPrice = (n: number) =>
+          currency === "USD" ? `$${n} USD` : `$${n.toLocaleString("es-AR")} ARS`;
+
+        async function handleConfirmBilling() {
+          setBillingConfirmLoading(true);
+          setBillingConfirmError(null);
+          try {
+            await updateSubscriptionQuantity(newCount);
+            setShowBillingConfirm(false);
+            await doSave();
+          } catch (err: unknown) {
+            const apiErr = err as { message?: string };
+            setBillingConfirmError(apiErr?.message ?? "Error al actualizar la suscripción");
+          } finally {
+            setBillingConfirmLoading(false);
+          }
+        }
+
+        return createPortal(
+          <div className="fixed inset-0 z-[200] bg-slate-900/40 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+              <h3 className="text-base font-semibold text-slate-800 mb-2">Profesional adicional</h3>
+              <p className="text-sm text-slate-600 mb-4">
+                Tenés <strong>{currentActiveCount}</strong> profesionales activos. Al activar este,
+                tu plan pasa a <strong>{formatPrice(totalMonthly)}/mes</strong> (base{" "}
+                {formatPrice(basePrice)} + {extraCount} extra × {formatPrice(extraPrice)}).
+              </p>
+              {billingConfirmError && (
+                <p className="text-xs text-red-600 mb-3">{billingConfirmError}</p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setShowBillingConfirm(false); setBillingConfirmError(null); }}
+                  className="flex-1 py-2 text-sm border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors"
+                  disabled={billingConfirmLoading}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleConfirmBilling}
+                  disabled={billingConfirmLoading}
+                  className="flex-1 py-2 text-sm bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-medium transition-colors disabled:opacity-60"
+                >
+                  {billingConfirmLoading ? "Procesando..." : "Confirmar"}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        );
+      })()}
 
       {/* Dialog de conflictos */}
       {pendingConflicts && (

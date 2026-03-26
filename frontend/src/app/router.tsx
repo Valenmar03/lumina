@@ -18,6 +18,7 @@ import BookingPaymentFailurePage from "../pages/BookingPaymentFailurePage.tsx";
 import BookingPaymentPendingPage from "../pages/BookingPaymentPendingPage.tsx";
 import NotFoundPage from "../pages/NotFoundPage.tsx";
 import { useAuth } from "../hooks/useAuth.ts";
+import SubscriptionGate from "../components/billing/SubscriptionGate";
 
 function ProtectedRoute() {
   const { user, isLoading } = useAuth();
@@ -35,7 +36,11 @@ function ProtectedRoute() {
     return <Navigate to={slug ? `/login/${slug}` : "/login"} replace />;
   }
 
-  return <Outlet />;
+  return (
+    <SubscriptionGate>
+      <Outlet />
+    </SubscriptionGate>
+  );
 }
 
 function OwnerRoute() {

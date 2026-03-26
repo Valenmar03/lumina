@@ -53,6 +53,11 @@ model Business {
   emailReminderHours        Int?     @default(24)
   plan               PlanType           @default(STARTER)
   subscriptionStatus SubscriptionStatus @default(TRIAL)
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  trialEndsAt          DateTime?
+  currency             String    @default("ARS")
+  billingExempt        Boolean   @default(false)
   createdAt          DateTime           @default(now())
 
   users         User[]

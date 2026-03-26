@@ -38,6 +38,11 @@ export type Business = {
   waReminderHours?: number | null;
   emailNotificationsEnabled?: boolean | null;
   emailReminderHours?: number | null;
+  trialEndsAt?: string | null;
+  currency?: string | null;
+  billingExempt?: boolean | null;
+  stripeCustomerId?: string | null;
+  stripeSubscriptionId?: string | null;
 };
 
 //CLIENT

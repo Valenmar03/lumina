@@ -19,6 +19,7 @@ import {
 import type { NavItem } from "../../types/navigation";
 import { appRoutes, routeTitles } from "../../app/routes.ts";
 import ConfirmModal from "../ui/ConfirmModal";
+import TrialBanner from "../billing/TrialBanner";
 
 const NAV_ITEMS: NavItem[] = [
   { name: "Dashboard", to: appRoutes.dashboard, icon: LayoutDashboard },
@@ -229,6 +230,7 @@ export function Layout() {
           </div>
         </header>
 
+        <TrialBanner />
         <main className="flex-1 p-4 md:p-6 lg:p-8">
           <Outlet />
         </main>

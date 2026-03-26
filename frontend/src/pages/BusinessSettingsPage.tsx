@@ -19,7 +19,11 @@ import {
   Info,
   MessageCircle,
   Mail,
+  CreditCard,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { getBillingStatus, createPortalSession, type BillingStatus } from "../services/billing.api";
+import { useSearchParams } from "react-router-dom";
 import { apiFetch } from "../services/api";
 import PasswordInput from "../components/ui/PasswordInput";
 import CustomSelect from "../components/ui/CustomSelect";
@@ -193,10 +197,109 @@ function EditableField({
   );
 }
 
+function BillingSection({ billing }: { billing: BillingStatus | undefined }) {
+  const [redirecting, setRedirecting] = useState(false);
+  const { data: businessData } = useBusiness();
+  const currency = businessData?.business?.currency ?? "ARS";
+
+  function formatPrice(amount: number) {
+    if (currency === "USD") return `$${amount} USD`;
+    return `$${amount.toLocaleString("es-AR")} ARS`;
+  }
+
+  const BILLING_STATUS_LABELS: Record<string, string> = {
+    TRIAL: "Período de prueba",
+    ACTIVE: "Activo",
+    PAST_DUE: "Pago vencido",
+    CANCELED: "Cancelado",
+  };
+
+  const BILLING_STATUS_COLORS: Record<string, string> = {
+    TRIAL: "bg-amber-50 text-amber-700",
+    ACTIVE: "bg-emerald-50 text-emerald-700",
+    PAST_DUE: "bg-red-50 text-red-700",
+    CANCELED: "bg-slate-100 text-slate-600",
+  };
+
+  async function handlePortal() {
+    setRedirecting(true);
+    try {
+      const { url } = await createPortalSession();
+      window.location.href = url;
+    } catch {
+      setRedirecting(false);
+    }
+  }
+
+  const status = billing?.subscriptionStatus ?? "TRIAL";
+  const label = BILLING_STATUS_LABELS[status] ?? status;
+  const colorClass = BILLING_STATUS_COLORS[status] ?? "bg-slate-100 text-slate-600";
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="flex items-center gap-2.5 px-6 py-4 border-b border-slate-100">
+        <CreditCard className="w-4 h-4 text-slate-400" />
+        <h2 className="text-sm font-semibold text-slate-700">Suscripción</h2>
+        <span className={`ml-auto text-xs font-medium px-2 py-0.5 rounded-full ${colorClass}`}>
+          {label}
+        </span>
+      </div>
+      <div className="px-6 py-4 space-y-3">
+        {billing && (
+          <>
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-500">Plan</span>
+              <span className="font-medium text-slate-700">Starter</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-500">Total mensual</span>
+              <span className="font-medium text-slate-700">
+                {formatPrice(billing.totalMonthly)}
+              </span>
+            </div>
+            {billing.nextBillingDate && (
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Próximo cobro</span>
+                <span className="font-medium text-slate-700">
+                  {new Date(billing.nextBillingDate).toLocaleDateString("es-AR")}
+                </span>
+              </div>
+            )}
+            {status === "ACTIVE" && (
+              <button
+                onClick={handlePortal}
+                disabled={redirecting}
+                className="mt-2 w-full text-sm text-teal-700 hover:text-teal-800 border border-teal-200 hover:bg-teal-50 rounded-lg py-2 transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                {redirecting ? "Redirigiendo..." : "Administrar suscripción"}
+              </button>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function BusinessSettingsPage() {
   const currentDate = new Date();
   const { data: businessData, isLoading } = useBusiness();
   const { mutateAsync: update } = useUpdateBusiness();
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [billingSuccess, setBillingSuccess] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("billing") === "success") {
+      setBillingSuccess(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const { data: billingData } = useQuery({
+    queryKey: ["billingStatus"],
+    queryFn: getBillingStatus,
+  });
 
   const { data: professionalsData } = useProfessionals();
   const { data: servicesData } = useServices();
@@ -224,6 +327,20 @@ export default function BusinessSettingsPage() {
           </p>
         </div>
       </div>
+
+      {billingSuccess && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-800">
+          <BadgeCheck className="w-4 h-4 shrink-0 text-emerald-600" />
+          <span>¡Tu suscripción fue activada correctamente! Ya podés usar todas las funciones del plan.</span>
+          <button
+            onClick={() => setBillingSuccess(false)}
+            className="ml-auto p-1 rounded-md hover:bg-emerald-100 transition-colors"
+            type="button"
+          >
+            <X className="w-4 h-4 text-emerald-600" />
+          </button>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="bg-white rounded-xl border border-slate-200 p-8 text-sm text-slate-500">
@@ -352,6 +469,9 @@ export default function BusinessSettingsPage() {
                 </div>
               </div>
             </div>
+            {/* Suscripción */}
+            <BillingSection billing={billingData} />
+
             {/* Cambiar contraseña */}
             <ChangePasswordForm />
           </div>

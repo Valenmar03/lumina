@@ -6,6 +6,7 @@ import authRoutes from "./routes/auth.routes";
 import publicRoutes from "./routes/public.routes";
 import routes from "./routes";
 import { authLimiter, publicLimiter, apiLimiter } from "./middleware/rateLimiter";
+import { webhookHandler } from "./controllers/billing.controller";
 
 const app = express();
 
@@ -13,6 +14,10 @@ app.set("trust proxy", 1);
 
 const allowedOrigin = process.env.ALLOWED_ORIGIN ?? "http://localhost:5173";
 app.use(cors({ origin: allowedOrigin, credentials: true }));
+
+// Stripe webhook needs raw body — must be BEFORE express.json()
+app.post("/billing/webhook", express.raw({ type: "application/json" }), webhookHandler);
+
 app.use(express.json());
 app.use(cookieParser());
 

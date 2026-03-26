@@ -287,21 +287,21 @@ export default function BusinessSettingsPage() {
               onSave={(mpAccessToken) => update({ mpAccessToken }).then(() => {})}
             />
 
-            {/* WhatsApp Business */}
-            <WhatsAppSection
-              currentPhoneNumberId={business.waPhoneNumberId ?? null}
-              currentAccessToken={business.waAccessToken ?? null}
-              currentReminderHours={business.waReminderHours ?? null}
-              onSave={(data) => update(data).then(() => {})}
-            />
-
-            {/* Número de WhatsApp del dueño */}
-            <OwnerPhoneSection
-              currentPhone={user?.phone ?? null}
-              onSave={async (phone) => {
-                await apiFetch("/auth/me", { method: "PATCH", body: JSON.stringify({ phone }) });
-              }}
-            />
+            {/* WhatsApp Business — próximamente */}
+            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden opacity-60">
+              <div className="flex items-center gap-2.5 px-6 py-4 border-b border-slate-100">
+                <MessageCircle className="w-4 h-4 text-slate-400" />
+                <h2 className="text-sm font-semibold text-slate-700">WhatsApp Business</h2>
+                <span className="ml-auto text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                  Próximamente
+                </span>
+              </div>
+              <div className="px-6 py-4">
+                <p className="text-xs text-slate-500">
+                  Estamos trabajando en la integración con WhatsApp Business. Próximamente podrás enviar notificaciones automáticas desde tu propio número.
+                </p>
+              </div>
+            </div>
 
             {/* Notificaciones por email */}
             <EmailNotificationsSection

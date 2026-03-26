@@ -531,7 +531,7 @@ export default function BookingPage() {
                   placeholder="Ej: maria@email.com"
                   type="email"
                 />
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-amber-600 mt-1">
                   Sin email no recibirás confirmaciones ni recordatorios del turno.
                 </p>
               </div>

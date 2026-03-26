@@ -42,6 +42,7 @@ async function main() {
       username: "admin",
       passwordHash,
       role: "OWNER",
+      email: "valenmrtnz8@gmail.com",
       emailVerified: true,
       phone: "+54 11 3885-3213",
     },

@@ -2,6 +2,11 @@ import { prisma } from "../db/prisma";
 import { getDayOfWeek, toHHMM, hhmmToMinutes } from "../utils/time";
 import type { AppointmentStatus, PaymentMethod } from "@prisma/client";
 import { sendTemplate, formatWaDate, formatWaTime } from "./whatsapp.service";
+import {
+  sendAppointmentConfirmed,
+  sendAppointmentCanceled,
+  sendAppointmentModified,
+} from "./email.service";
 
 const SOFT_TOLERANCE_MIN = 15 as const;
 
@@ -25,7 +30,13 @@ async function checkUnavailabilityBlock(
 async function getBusinessWaConfig(businessId: string) {
   return prisma.business.findUnique({
     where: { id: businessId },
-    select: { waPhoneNumberId: true, waAccessToken: true, name: true, timezone: true },
+    select: {
+      waPhoneNumberId: true,
+      waAccessToken: true,
+      emailNotificationsEnabled: true,
+      name: true,
+      timezone: true,
+    },
   });
 }
 
@@ -160,23 +171,32 @@ export class AppointmentService {
       },
     });
 
-    // Notificación WA: turno confirmado
+    // Notificaciones: turno confirmado
     getBusinessWaConfig(businessId).then((biz) => {
-      if (!biz?.waAccessToken || !biz?.waPhoneNumberId || !client.phone) return;
-      sendTemplate({
-        accessToken: biz.waAccessToken,
-        phoneNumberId: biz.waPhoneNumberId,
-        to: client.phone,
-        templateName: "turno_confirmado",
-        variables: [
-          client.fullName,
-          service.name,
-          professional.name,
-          formatWaDate(appointment.startAt, biz.timezone),
-          formatWaTime(appointment.startAt, biz.timezone),
-          biz.name,
-        ],
-      });
+      if (!biz) return;
+      const dateStr = formatWaDate(appointment.startAt, biz.timezone);
+      const timeStr = formatWaTime(appointment.startAt, biz.timezone);
+
+      if (biz.waAccessToken && biz.waPhoneNumberId && client.phone) {
+        sendTemplate({
+          accessToken: biz.waAccessToken,
+          phoneNumberId: biz.waPhoneNumberId,
+          to: client.phone,
+          templateName: "turno_confirmado",
+          variables: [client.fullName, service.name, professional.name, dateStr, timeStr, biz.name],
+        });
+      }
+
+      if (biz.emailNotificationsEnabled && client.email) {
+        sendAppointmentConfirmed(client.email, {
+          clientName: client.fullName,
+          professionalName: professional.name,
+          serviceName: service.name,
+          date: dateStr,
+          time: timeStr,
+          businessName: biz.name,
+        });
+      }
     }).catch(() => {});
 
     return { appointment, warning };
@@ -286,20 +306,36 @@ export class AppointmentService {
         prisma.professional.findUnique({ where: { id: appointment.professionalId }, select: { name: true } }),
         getBusinessWaConfig(businessId),
       ]).then(([client, service, professional, biz]) => {
-        if (!biz?.waAccessToken || !biz?.waPhoneNumberId || !client?.phone) return;
-        sendTemplate({
-          accessToken: biz.waAccessToken,
-          phoneNumberId: biz.waPhoneNumberId,
-          to: client.phone,
-          templateName: "turno_cancelado",
-          variables: [
-            client.fullName,
-            service?.name ?? "",
-            professional?.name ?? "",
-            formatWaDate(appointment.startAt, biz.timezone),
-            formatWaTime(appointment.startAt, biz.timezone),
-          ],
-        });
+        if (!biz || !client) return;
+        const dateStr = formatWaDate(appointment.startAt, biz.timezone);
+        const timeStr = formatWaTime(appointment.startAt, biz.timezone);
+
+        if (biz.waAccessToken && biz.waPhoneNumberId && client.phone) {
+          sendTemplate({
+            accessToken: biz.waAccessToken,
+            phoneNumberId: biz.waPhoneNumberId,
+            to: client.phone,
+            templateName: "turno_cancelado",
+            variables: [
+              client.fullName,
+              service?.name ?? "",
+              professional?.name ?? "",
+              dateStr,
+              timeStr,
+            ],
+          });
+        }
+
+        if (biz.emailNotificationsEnabled && client.email) {
+          sendAppointmentCanceled(client.email, {
+            clientName: client.fullName,
+            professionalName: professional?.name ?? "",
+            serviceName: service?.name ?? "",
+            date: dateStr,
+            time: timeStr,
+            businessName: biz.name,
+          });
+        }
       }).catch(() => {});
     }
 
@@ -393,23 +429,39 @@ export class AppointmentService {
       },
     });
 
-    // Notificación WA: turno modificado
+    // Notificaciones: turno modificado
     getBusinessWaConfig(businessId).then((biz) => {
-      if (!biz?.waAccessToken || !biz?.waPhoneNumberId || !updated.client?.phone) return;
-      sendTemplate({
-        accessToken: biz.waAccessToken,
-        phoneNumberId: biz.waPhoneNumberId,
-        to: updated.client.phone,
-        templateName: "turno_modificado",
-        variables: [
-          updated.client.fullName,
-          updated.service.name,
-          updated.professional?.name ?? "",
-          formatWaDate(updated.startAt, biz.timezone),
-          formatWaTime(updated.startAt, biz.timezone),
-          biz.name,
-        ],
-      });
+      if (!biz) return;
+      const dateStr = formatWaDate(updated.startAt, biz.timezone);
+      const timeStr = formatWaTime(updated.startAt, biz.timezone);
+
+      if (biz.waAccessToken && biz.waPhoneNumberId && updated.client?.phone) {
+        sendTemplate({
+          accessToken: biz.waAccessToken,
+          phoneNumberId: biz.waPhoneNumberId,
+          to: updated.client.phone,
+          templateName: "turno_modificado",
+          variables: [
+            updated.client.fullName,
+            updated.service.name,
+            updated.professional?.name ?? "",
+            dateStr,
+            timeStr,
+            biz.name,
+          ],
+        });
+      }
+
+      if (biz.emailNotificationsEnabled && updated.client?.email) {
+        sendAppointmentModified(updated.client.email, {
+          clientName: updated.client.fullName,
+          professionalName: updated.professional?.name ?? "",
+          serviceName: updated.service.name,
+          date: dateStr,
+          time: timeStr,
+          businessName: biz.name,
+        });
+      }
     }).catch(() => {});
 
     return {

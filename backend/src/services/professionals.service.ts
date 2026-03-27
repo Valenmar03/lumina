@@ -1,5 +1,8 @@
 import { DateTime } from "luxon";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { prisma } from "../db/prisma";
+import { sendAppointmentCanceled } from "./email.service";
 
 function badRequest(message: string) {
   const err = new Error(message) as Error & { status?: number };
@@ -343,8 +346,9 @@ export class ProfessionalService {
         id: true,
         startAt: true,
         endAt: true,
-        client: { select: { fullName: true } },
+        client: { select: { fullName: true, email: true } },
         service: { select: { name: true } },
+        professional: { select: { name: true } },
       },
     });
 
@@ -360,6 +364,27 @@ export class ProfessionalService {
         where: { id: { in: conflicting.map((a) => a.id) } },
         data: { status: "CANCELED" },
       });
+
+      // Send cancellation emails (fire-and-forget)
+      const biz = await prisma.business.findUnique({
+        where: { id: businessId },
+        select: { name: true, emailNotificationsEnabled: true },
+      });
+
+      if (biz?.emailNotificationsEnabled) {
+        for (const appt of conflicting) {
+          if (!appt.client.email) continue;
+          sendAppointmentCanceled(appt.client.email, {
+            clientName: appt.client.fullName,
+            professionalName: appt.professional?.name ?? "",
+            serviceName: appt.service.name,
+            date: format(appt.startAt, "dd/MM/yyyy", { locale: es }),
+            time: format(appt.startAt, "HH:mm"),
+            businessName: biz.name,
+            reason: reason ?? undefined,
+          }).catch(() => {});
+        }
+      }
     }
 
     return prisma.professionalUnavailability.create({

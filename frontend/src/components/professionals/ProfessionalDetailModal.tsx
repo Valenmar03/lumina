@@ -726,13 +726,18 @@ export default function ProfessionalDetailModal({
                 onChange={setUnavailEndTime}
               />
             </div>
-            <input
-              type="text"
-              placeholder="Motivo (opcional)"
-              value={unavailReason}
-              onChange={(e) => setUnavailReason(e.target.value)}
-              className="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-teal-500"
-            />
+            <div>
+              <input
+                type="text"
+                placeholder="Motivo (opcional)"
+                value={unavailReason}
+                onChange={(e) => setUnavailReason(e.target.value)}
+                className="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-teal-500"
+              />
+              <p className="text-xs text-slate-400 mt-1">
+                Este motivo se incluirá en el email de cancelación que recibirán los clientes afectados.
+              </p>
+            </div>
             {unavailError && (
               <p className="text-xs text-red-600">{unavailError}</p>
             )}

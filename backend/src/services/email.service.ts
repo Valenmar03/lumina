@@ -74,6 +74,7 @@ interface AppointmentEmailData {
   date: string; // "dd/MM/yyyy"
   time: string; // "HH:mm"
   businessName: string;
+  reason?: string;
 }
 
 function appointmentDetailsTable(data: AppointmentEmailData): string {
@@ -132,6 +133,7 @@ export async function sendAppointmentCanceled(to: string, data: AppointmentEmail
         <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">Turno cancelado</h2>
         <p style="color: #475569; margin-bottom: 4px;">Hola ${data.clientName},</p>
         <p style="color: #475569;">Tu turno ha sido cancelado.</p>
+        ${data.reason ? `<p style="color: #475569; margin-top: 8px;"><strong>Motivo:</strong> ${data.reason}</p>` : ""}
         ${appointmentDetailsTable(data)}
       `)
     );

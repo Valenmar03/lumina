@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { CreditCard, MessageCircle } from "lucide-react";
 import { getBillingStatus } from "../../services/billing.api";
 
-const CONTACT_WHATSAPP = "https://wa.me/5491138853213";
+const CONTACT_WHATSAPP = "https://wa.me/5491138853213?text=Hola%2C%20quiero%20suscribirme%20a%20Caleio.";
 
 function isBlocked(
   status: "TRIAL" | "ACTIVE" | "PAST_DUE" | "CANCELED",

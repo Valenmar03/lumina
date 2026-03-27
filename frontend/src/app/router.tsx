@@ -6,7 +6,7 @@ import ProfessionalsPage from "../pages/ProfessionalsPage.tsx";
 import ServicesPage from "../pages/ServicesPage.tsx";
 import ClientsPage from "../pages/ClientsPage.tsx";
 import LoginPage from "../pages/LoginPage.tsx";
-//import RegisterPage from "../pages/RegisterPage.tsx";
+import RegisterPage from "../pages/RegisterPage.tsx";
 import VerifyEmailPage from "../pages/VerifyEmailPage.tsx";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage.tsx";
 import ResetPasswordPage from "../pages/ResetPasswordPage.tsx";
@@ -55,8 +55,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/register",
-    //element: <RegisterPage />,
-    element: <Navigate to="/login" replace />,
+    element: <RegisterPage />,
   },
   {
     path: "/verificar-email",

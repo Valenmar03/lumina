@@ -27,6 +27,7 @@ type UpdateServiceInput = {
   requiresDeposit?: boolean;
   depositPercent?: number | null;
   bookableOnline?: boolean;
+  allowClientChooseProfessional?: boolean;
 };
 
 export class ServiceService {
@@ -195,6 +196,10 @@ export class ServiceService {
 
     if (data.bookableOnline !== undefined) {
       updateData.bookableOnline = data.bookableOnline;
+    }
+
+    if (data.allowClientChooseProfessional !== undefined) {
+      updateData.allowClientChooseProfessional = data.allowClientChooseProfessional;
     }
 
     return prisma.service.update({ where: { id }, data: updateData });

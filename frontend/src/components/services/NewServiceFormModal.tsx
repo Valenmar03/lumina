@@ -253,15 +253,15 @@ export default function NewServicesFormModal({ open, onClose }: Props) {
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-slate-800">Agendable online</p>
               <p className="text-xs text-slate-400">Los clientes pueden reservar este servicio desde el link de reservas</p>
             </div>
             <button
               type="button"
               onClick={() => setBookableOnline((prev) => !prev)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${bookableOnline ? "bg-teal-600" : "bg-slate-200"}`}
+              className={`relative inline-flex shrink-0 h-6 w-11 items-center rounded-full transition-colors ${bookableOnline ? "bg-teal-600" : "bg-slate-200"}`}
             >
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${bookableOnline ? "translate-x-6" : "translate-x-1"}`} />
             </button>
@@ -269,8 +269,8 @@ export default function NewServicesFormModal({ open, onClose }: Props) {
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-slate-800">El cliente puede elegir profesional</p>
               <p className="text-xs text-slate-400">El cliente puede elegir un profesional al reservar. Si está desactivado, se asigna uno automáticamente.</p>
             </div>
@@ -278,7 +278,7 @@ export default function NewServicesFormModal({ open, onClose }: Props) {
               type="button"
               onClick={() => bookableOnline && setAllowClientChooseProfessional((prev) => !prev)}
               disabled={!bookableOnline}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              className={`relative inline-flex shrink-0 h-6 w-11 items-center rounded-full transition-colors ${
                 !bookableOnline ? "opacity-40 cursor-not-allowed bg-slate-200" :
                 allowClientChooseProfessional ? "bg-teal-600" : "bg-slate-200"
               }`}

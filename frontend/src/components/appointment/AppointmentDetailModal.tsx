@@ -69,6 +69,7 @@ export default function AppointmentDetailModal({
 
   const [view, setView] = useState<DetailView>("summary");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
 
   const clientBoxRef = useRef<HTMLDivElement | null>(null);
 
@@ -388,10 +389,9 @@ export default function AppointmentDetailModal({
         return;
       }
 
-      const needsConfirm = status === "CANCELED";
-      if (needsConfirm) {
-        const confirmed = window.confirm("¿Seguro que querés cancelar este turno?");
-        if (!confirmed) return;
+      if (status === "CANCELED") {
+        setConfirmCancel(true);
+        return;
       }
 
       setShowDepositInput(false);
@@ -799,6 +799,22 @@ export default function AppointmentDetailModal({
         description="¿Estás seguro de que querés eliminar este turno? Esta acción no se puede deshacer."
         confirmLabel="Eliminar"
         loading={deleteMutation.isPending}
+      />
+
+      <ConfirmModal
+        open={confirmCancel}
+        onClose={() => setConfirmCancel(false)}
+        onConfirm={() => {
+          if (!appointment) return;
+          setShowDepositInput(false);
+          setShowFinalPaymentInput(false);
+          statusMutation.mutate({ id: appointment.id, status: "CANCELED" });
+          setConfirmCancel(false);
+        }}
+        title="Cancelar turno"
+        description="¿Estás seguro de que querés cancelar este turno?"
+        confirmLabel="Cancelar turno"
+        loading={statusMutation.isPending}
       />
     </Modal>
   );

@@ -11,7 +11,7 @@ type BusinessInfo = { id: string; name: string; slug: string };
 type Professional = { id: string; name: string; color: string };
 type Slot = { startAt: string; endAt: string; label: string };
 
-type Service = { id: string; name: string; durationMin: number; basePrice: number; requiresDeposit: boolean; depositPercent: number | null; allowClientChooseProfessional: boolean };
+type Service = { id: string; name: string; description?: string; durationMin: number; basePrice: number; requiresDeposit: boolean; depositPercent: number | null; allowClientChooseProfessional: boolean };
 type Step = "service" | "professional" | "datetime" | "client" | "confirm" | "redirecting" | "done";
 
 const STEPS: Step[] = ["service", "professional", "datetime", "client", "confirm", "redirecting", "done"];
@@ -424,6 +424,9 @@ export default function BookingPage() {
                           </span>
                         )}
                       </div>
+                      {svc.description && (
+                        <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{svc.description}</p>
+                      )}
                       <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
                         <Clock className="w-3 h-3" />
                         {formatDuration(svc.durationMin)}

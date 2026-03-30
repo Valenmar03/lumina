@@ -225,12 +225,13 @@ export default function BookingPage() {
       .finally(() => setLoadingSlots(false));
   }, [slug, selectedProfessional, selectedService, selectedDate, step]);
 
+  const showProfessionalStep = !!(selectedService?.allowClientChooseProfessional);
+
   function goBack() {
-    const showProfessional = !!(selectedService?.allowClientChooseProfessional);
     const prev: Record<Step, Step> = {
       service: "service",
       professional: "service",
-      datetime: showProfessional ? "professional" : "service",
+      datetime: showProfessionalStep ? "professional" : "service",
       client: "datetime",
       confirm: "client",
       redirecting: "redirecting",
@@ -352,11 +353,9 @@ export default function BookingPage() {
     ? Math.round(Number(selectedService.basePrice) * selectedService.depositPercent / 100)
     : null;
 
-  const showProfessionalStep = !!(selectedService?.allowClientChooseProfessional);
-
   const canGoNext: Record<Step, boolean> = {
     service: !!selectedService,
-    professional: selectedService?.allowClientChooseProfessional ? !!selectedProfessional : true,
+    professional: showProfessionalStep ? !!selectedProfessional : true,
     datetime: !!selectedSlot,
     client: clientName.trim().length >= 2 && clientPhone.replace(/\D/g, "").length >= 6,
     confirm: true,
@@ -572,7 +571,15 @@ export default function BookingPage() {
                 </div>
               )}
               <div className="border-t border-slate-200 pt-3" />
-              <Row label="Profesional" value={selectedProfessional?.name ?? ""} />
+              <Row
+                label="Profesional"
+                value={
+                  selectedProfessional?.name ??
+                  (selectedService?.allowClientChooseProfessional === false
+                    ? "Se asignará automáticamente"
+                    : "")
+                }
+              />
               <Row
                 label="Fecha"
                 value={format(selectedDate, "EEEE d 'de' MMMM yyyy", { locale: es })}

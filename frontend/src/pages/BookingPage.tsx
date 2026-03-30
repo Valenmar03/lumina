@@ -11,7 +11,7 @@ type BusinessInfo = { id: string; name: string; slug: string };
 type Professional = { id: string; name: string; color: string };
 type Slot = { startAt: string; endAt: string; label: string };
 
-type Service = { id: string; name: string; durationMin: number; basePrice: number; requiresDeposit: boolean; depositPercent: number | null };
+type Service = { id: string; name: string; durationMin: number; basePrice: number; requiresDeposit: boolean; depositPercent: number | null; allowClientChooseProfessional: boolean };
 type Step = "service" | "professional" | "datetime" | "client" | "confirm" | "redirecting" | "done";
 
 const STEPS: Step[] = ["service", "professional", "datetime", "client", "confirm", "redirecting", "done"];
@@ -47,8 +47,10 @@ const STEP_LABELS: Record<Step, string> = {
   done: "Listo",
 };
 
-function StepBar({ current }: { current: Step }) {
-  const visible: Step[] = ["service", "professional", "datetime", "client", "confirm"];
+function StepBar({ current, showProfessional }: { current: Step; showProfessional: boolean }) {
+  const visible: Step[] = showProfessional
+    ? ["service", "professional", "datetime", "client", "confirm"]
+    : ["service", "datetime", "client", "confirm"];
   const currentIdx = stepIndex(current);
 
   return (
@@ -203,30 +205,32 @@ export default function BookingPage() {
 
   // Load slots when professional or date changes (during datetime step)
   useEffect(() => {
-    if (!slug || !selectedProfessional || !selectedService || step !== "datetime") return;
+    if (!slug || !selectedService || step !== "datetime") return;
     setSlots([]);
     setSelectedSlot(null);
     setLoadingSlots(true);
     const dateStr = format(selectedDate, "yyyy-MM-dd");
-    fetch(
-      `/booking/${slug}/professionals/${selectedProfessional.id}/availability?date=${dateStr}&serviceId=${selectedService.id}`
-    )
+
+    const url = selectedProfessional
+      ? `/booking/${slug}/professionals/${selectedProfessional.id}/availability?date=${dateStr}&serviceId=${selectedService.id}`
+      : `/booking/${slug}/availability?date=${dateStr}&serviceId=${selectedService.id}`;
+
+    fetch(url)
       .then((r) => r.json())
       .then((data) => {
         const now = new Date();
-        const future = (data.slots ?? []).filter(
-          (s: Slot) => new Date(s.startAt) > now
-        );
+        const future = (data.slots ?? []).filter((s: Slot) => new Date(s.startAt) > now);
         setSlots(future);
       })
       .finally(() => setLoadingSlots(false));
   }, [slug, selectedProfessional, selectedService, selectedDate, step]);
 
   function goBack() {
+    const showProfessional = !!(selectedService?.allowClientChooseProfessional);
     const prev: Record<Step, Step> = {
       service: "service",
       professional: "service",
-      datetime: "professional",
+      datetime: showProfessional ? "professional" : "service",
       client: "datetime",
       confirm: "client",
       redirecting: "redirecting",
@@ -236,7 +240,7 @@ export default function BookingPage() {
   }
 
   async function handleConfirm() {
-    if (!slug || !selectedService || !selectedProfessional || !selectedSlot) return;
+    if (!slug || !selectedService || !selectedSlot) return;
     setSubmitting(true);
     setSubmitError(null);
     try {
@@ -245,7 +249,7 @@ export default function BookingPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           serviceId: selectedService.id,
-          professionalId: selectedProfessional.id,
+          ...(selectedProfessional ? { professionalId: selectedProfessional.id } : {}),
           startAt: selectedSlot.startAt,
           clientFullName: clientName.trim(),
           clientPhone: clientPhone.trim(),
@@ -257,6 +261,10 @@ export default function BookingPage() {
         throw new Error(body.error ?? "No se pudo confirmar el turno");
       }
       const result = await res.json();
+      // If backend auto-assigned a professional, store it for the done screen
+      if (result.assignedProfessional && !selectedProfessional) {
+        setSelectedProfessional(result.assignedProfessional);
+      }
       if (result.checkoutUrl) {
         setStep("redirecting");
         setTimeout(() => {
@@ -332,7 +340,9 @@ export default function BookingPage() {
             />
             <Row label="Hora" value={selectedSlot?.label ?? ""} />
           </div>
-          <p className="text-xs text-slate-400 mt-4">Recordá el horario. Pronto podrás recibir recordatorios.</p>
+          <p className="text-xs text-slate-400 mt-4 text-center">
+            Para cancelar o modificar tu turno, comunicate directamente con el negocio.
+          </p>
         </div>
       </div>
     );
@@ -342,9 +352,11 @@ export default function BookingPage() {
     ? Math.round(Number(selectedService.basePrice) * selectedService.depositPercent / 100)
     : null;
 
+  const showProfessionalStep = !!(selectedService?.allowClientChooseProfessional);
+
   const canGoNext: Record<Step, boolean> = {
     service: !!selectedService,
-    professional: !!selectedProfessional,
+    professional: selectedService?.allowClientChooseProfessional ? !!selectedProfessional : true,
     datetime: !!selectedSlot,
     client: clientName.trim().length >= 2 && clientPhone.replace(/\D/g, "").length >= 6,
     confirm: true,
@@ -353,7 +365,7 @@ export default function BookingPage() {
   };
 
   const nextStep: Record<Step, Step> = {
-    service: "professional",
+    service: showProfessionalStep ? "professional" : "datetime",
     professional: "datetime",
     datetime: "client",
     client: "confirm",
@@ -381,7 +393,7 @@ export default function BookingPage() {
 
       {/* Content */}
       <div className="max-w-lg mx-auto px-4 py-6">
-        <StepBar current={step} />
+        <StepBar current={step} showProfessional={showProfessionalStep} />
 
         {/* ── STEP: Service ── */}
         {step === "service" && (

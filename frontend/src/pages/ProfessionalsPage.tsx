@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { ChevronDown, Plus, Search } from "lucide-react";
+import { ChevronDown, Plus, Search, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
 
@@ -184,8 +184,14 @@ export default function ProfessionalsPage() {
             ))}
           </div>
         ) : professionals.length === 0 ? (
-          <div className="bg-white rounded-xl border border-slate-200 p-8 text-sm text-slate-500">
-            No hay profesionales cargados.
+          <div className="bg-white rounded-xl border border-slate-200 p-12 flex flex-col items-center gap-3 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+              <Users className="w-6 h-6 text-slate-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-700">No hay profesionales cargados</p>
+              <p className="text-xs text-slate-400 mt-0.5">Agregá tu primer profesional para empezar</p>
+            </div>
           </div>
         ) : activeProfessionals.length === 0 && inactiveProfessionals.length === 0 ? (
           <div className="bg-white rounded-xl border border-slate-200 p-8 text-sm text-slate-500">

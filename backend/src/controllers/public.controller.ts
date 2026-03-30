@@ -4,6 +4,7 @@ import {
   getPublicServices,
   getPublicProfessionals,
   getPublicAvailability,
+  getPublicAggregatedAvailability,
   createPublicAppointment,
   confirmPublicPayment,
 } from "../services/public.service";
@@ -57,12 +58,27 @@ export async function getAvailabilityHandler(req: Request, res: Response, next: 
   }
 }
 
+export async function getAggregatedAvailabilityHandler(req: Request, res: Response, next: NextFunction) {
+  try {
+    const slug = req.params["slug"] as string;
+    const { date, serviceId } = req.query as { date?: string; serviceId?: string };
+    if (!date || !serviceId) {
+      res.status(400).json({ error: "date and serviceId are required" });
+      return;
+    }
+    const data = await getPublicAggregatedAvailability(slug, date, serviceId);
+    res.json(data);
+  } catch (err) {
+    handleError(err, res);
+  }
+}
+
 export async function createAppointmentHandler(req: Request, res: Response, next: NextFunction) {
   try {
     const { serviceId, professionalId, startAt, clientFullName, clientPhone, clientEmail } =
       req.body;
 
-    if (!serviceId || !professionalId || !startAt || !clientFullName || !clientPhone) {
+    if (!serviceId || !startAt || !clientFullName || !clientPhone) {
       res.status(400).json({ error: "Missing required fields" });
       return;
     }

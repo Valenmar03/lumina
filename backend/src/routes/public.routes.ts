@@ -4,6 +4,7 @@ import {
   getServicesHandler,
   getProfessionalsHandler,
   getAvailabilityHandler,
+  getAggregatedAvailabilityHandler,
   createAppointmentHandler,
   confirmPaymentHandler,
 } from "../controllers/public.controller";
@@ -27,6 +28,7 @@ router.get(
   validate(publicAvailabilityQuery, "query"),
   getAvailabilityHandler
 );
+router.get("/:slug/availability", validate(slugParams, "params"), getAggregatedAvailabilityHandler);
 router.post("/:slug/appointments", validate(slugParams, "params"), validate(publicCreateAppointmentBody), createAppointmentHandler);
 router.post(
   "/:slug/appointments/:appointmentId/confirm-payment",

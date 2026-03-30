@@ -100,6 +100,7 @@ export type Service = {
   requiresDeposit: boolean;
   depositPercent: number | null;
   bookableOnline: boolean;
+  allowClientChooseProfessional: boolean;
 };
 
 
@@ -113,6 +114,7 @@ export type ServiceWithProfessional = {
   requiresDeposit: boolean;
   depositPercent: number | null;
   bookableOnline: boolean;
+  allowClientChooseProfessional: boolean;
   professionalServices: {
     professional: {
       id: string;
@@ -134,6 +136,7 @@ export type UpdateServicePayload = {
   requiresDeposit?: boolean;
   depositPercent?: number | null;
   bookableOnline?: boolean;
+  allowClientChooseProfessional?: boolean;
 };
 
 export type CreateServicePayload = {
@@ -145,6 +148,7 @@ export type CreateServicePayload = {
   requiresDeposit?: boolean;
   depositPercent?: number | null;
   bookableOnline?: boolean;
+  allowClientChooseProfessional?: boolean;
 };
 
 

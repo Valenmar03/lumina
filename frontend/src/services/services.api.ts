@@ -25,6 +25,7 @@ export async function updateService(payload: UpdateServicePayload) {
         ...(payload.requiresDeposit !== undefined && { requiresDeposit: payload.requiresDeposit }),
         ...(payload.depositPercent !== undefined && { depositPercent: payload.depositPercent }),
         ...(payload.bookableOnline !== undefined && { bookableOnline: payload.bookableOnline }),
+        ...(payload.allowClientChooseProfessional !== undefined && { allowClientChooseProfessional: payload.allowClientChooseProfessional }),
       })
     }
   );
@@ -44,6 +45,7 @@ export async function createService(payload: CreateServicePayload) {
         requiresDeposit: payload.requiresDeposit ?? false,
         depositPercent: payload.depositPercent ?? null,
         bookableOnline: payload.bookableOnline ?? true,
+        allowClientChooseProfessional: payload.allowClientChooseProfessional ?? true,
       }),
     }
   );

@@ -104,7 +104,6 @@ function appointmentDetailsTable(data: AppointmentEmailData): string {
         <td style="padding: 6px 0; font-weight: 500; color: #1e293b;">${data.time}</td>
       </tr>
     </table>
-    <p style="color:#64748b;font-size:13px;margin-top:16px;">Para cancelar o modificar tu turno, comunicate directamente con el negocio.</p>
     <p style="color: #94a3b8; font-size: 13px; margin-top: 24px;">
       Este mensaje fue enviado por ${data.businessName} a través de Caleio.
     </p>
@@ -125,6 +124,7 @@ export async function sendAppointmentConfirmed(to: string, data: AppointmentEmai
         <p style="color: #475569; margin-bottom: 4px;">Hola ${data.clientName},</p>
         <p style="color: #475569;">Tu turno ha sido confirmado.</p>
         ${appointmentDetailsTable(data)}
+        <p style="color:#64748b;font-size:13px;margin-top:16px;">Para cancelar o modificar tu turno, comunicate directamente con el negocio.</p>
       `)
     );
   } catch (err) {

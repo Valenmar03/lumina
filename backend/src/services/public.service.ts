@@ -219,7 +219,7 @@ export async function createPublicAppointment(
         where: {
           professionalId: { in: allProfessionalIds },
           createdAt: { gte: pendingPaymentCutoff },
-          startAt: { gte: startDate, lt: endAt },
+          startAt: { lt: endAt },
         },
         select: { professionalId: true },
       }),

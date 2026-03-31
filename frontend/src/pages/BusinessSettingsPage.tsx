@@ -27,6 +27,7 @@ import { useBusiness, useUpdateBusiness } from "../hooks/useBusiness";
 import { useProfessionals } from "../hooks/useProfessionals";
 import { useServices } from "../hooks/useServices";
 import { useClients } from "../hooks/useClients";
+import ClosedDaysSection from "../components/settings/ClosedDaysSection";
 
 const PLAN_LABELS: Record<string, string> = {
   STARTER: "Starter",
@@ -313,6 +314,8 @@ export default function BusinessSettingsPage() {
               plan={business.plan}
               subscriptionStatus={business.subscriptionStatus}
             />
+            {/* Días cerrados */}
+            <ClosedDaysSection />
             {/* Cambiar contraseña */}
             <ChangePasswordForm />
           </div>

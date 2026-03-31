@@ -217,6 +217,13 @@ export class ProfessionalService {
     const day = DateTime.fromISO(date, { zone: TZ });
     if (!day.isValid) throw badRequest("Invalid date");
 
+    const closedDay = await prisma.businessUnavailability.findUnique({
+      where: { businessId_date: { businessId, date } },
+    });
+    if (closedDay) {
+      return { date, professionalId, serviceId, stepMin, slots: [] };
+    }
+
     const dayOfWeek = day.weekday % 7;
 
     const schedules = await prisma.professionalSchedule.findMany({

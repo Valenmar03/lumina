@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { format, isSameDay, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarOff } from "lucide-react";
@@ -82,7 +83,10 @@ export default function WeekView({
   setCurrentDate,
   setView,
 }: WeekViewProps) {
-  const closedDaySet = new Map(closedDays.map((u) => [u.date, u.reason]));
+  const closedDaySet = useMemo(
+    () => new Map(closedDays.map((u) => [u.date, u.reason])),
+    [closedDays],
+  );
 
   return (
     <div className="overflow-x-auto">

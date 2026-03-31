@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { addDays, format, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarOff, ChevronLeft, ChevronRight, Plus } from "lucide-react";
@@ -49,7 +49,10 @@ export default function MobileAgenda({
     handleSlotClick,
     handleAppointmentClick,
 }: Props) {
-  const closedDaySet = new Map(closedDays.map((u) => [u.date, u.reason]));
+  const closedDaySet = useMemo(
+    () => new Map(closedDays.map((u) => [u.date, u.reason])),
+    [closedDays],
+  );
   const [selectedWeekDay, setSelectedWeekDay] = useState(currentDate);
 
   useEffect(() => {

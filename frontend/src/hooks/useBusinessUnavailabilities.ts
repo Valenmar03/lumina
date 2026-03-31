@@ -9,6 +9,7 @@ export function useBusinessUnavailabilities() {
   return useQuery({
     queryKey: ["business-unavailabilities"],
     queryFn: getBusinessUnavailabilities,
+    staleTime: 10 * 60 * 1000,
   });
 }
 

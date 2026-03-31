@@ -1,5 +1,6 @@
 import { apiFetch } from "./api";
-import type { Business } from "../types/entities";
+import type { Business, BusinessUnavailability } from "../types/entities";
+export type { BusinessUnavailability };
 
 export function getBusiness() {
   return apiFetch<{ business: Business }>("/business");
@@ -11,14 +12,6 @@ export function updateBusiness(data: { name?: string; slug?: string; timezone?: 
     body: JSON.stringify(data),
   });
 }
-
-export type BusinessUnavailability = {
-  id: string;
-  businessId: string;
-  date: string; // yyyy-MM-dd
-  reason: string | null;
-  createdAt: string;
-};
 
 export function getBusinessUnavailabilities() {
   return apiFetch<{ unavailabilities: BusinessUnavailability[] }>("/business/unavailabilities");

@@ -44,6 +44,14 @@ export type Business = {
   billingExempt?: boolean;
 };
 
+export type BusinessUnavailability = {
+  id: string;
+  businessId: string;
+  date: string; // yyyy-MM-dd
+  reason: string | null;
+  createdAt: string;
+};
+
 //CLIENT
 export type Client = {
   id: string;

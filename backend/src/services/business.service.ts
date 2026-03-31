@@ -70,9 +70,7 @@ export async function createBusinessUnavailability(
     where: { businessId_date: { businessId, date: data.date } },
   });
   if (existing) {
-    const err = new Error("Ya existe un cierre para esa fecha") as Error & { status?: number };
-    err.status = 409;
-    throw err;
+    throw Object.assign(new Error("DATE_ALREADY_CLOSED"), { status: 409 });
   }
   return prisma.businessUnavailability.create({
     data: { businessId, date: data.date, reason: data.reason ?? null },
@@ -84,9 +82,7 @@ export async function deleteBusinessUnavailability(businessId: string, id: strin
     where: { id, businessId },
   });
   if (!record) {
-    const err = new Error("Cierre no encontrado") as Error & { status?: number };
-    err.status = 404;
-    throw err;
+    throw Object.assign(new Error("Cierre no encontrado"), { status: 404 });
   }
   await prisma.businessUnavailability.delete({ where: { id } });
 }

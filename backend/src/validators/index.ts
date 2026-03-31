@@ -333,6 +333,6 @@ export const businessUnavailabilityIdParam = z.object({
 });
 
 export const createBusinessUnavailabilityBody = z.object({
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be yyyy-MM-dd"),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "La fecha debe tener formato YYYY-MM-DD"),
   reason: z.string().trim().max(200).optional().nullable(),
 });

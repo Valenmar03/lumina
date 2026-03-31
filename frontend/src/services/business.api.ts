@@ -11,3 +11,26 @@ export function updateBusiness(data: { name?: string; slug?: string; timezone?: 
     body: JSON.stringify(data),
   });
 }
+
+export type BusinessUnavailability = {
+  id: string;
+  businessId: string;
+  date: string; // yyyy-MM-dd
+  reason: string | null;
+  createdAt: string;
+};
+
+export function getBusinessUnavailabilities() {
+  return apiFetch<{ unavailabilities: BusinessUnavailability[] }>("/business/unavailabilities");
+}
+
+export function createBusinessUnavailability(data: { date: string; reason?: string | null }) {
+  return apiFetch<{ unavailability: BusinessUnavailability }>("/business/unavailabilities", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export function deleteBusinessUnavailability(id: string) {
+  return apiFetch<void>(`/business/unavailabilities/${id}`, { method: "DELETE" });
+}

@@ -187,10 +187,9 @@ export default function BusinessProfilePage() {
     );
   }
 
-  function saveTheme(themeId: string) {
-    setBookingTheme(themeId);
+  function saveTheme() {
     mutation.mutate(
-      { bookingTheme: themeId },
+      { bookingTheme: bookingTheme },
       { onSuccess: () => showSaved("theme") }
     );
   }
@@ -298,7 +297,7 @@ export default function BusinessProfilePage() {
               return (
                 <button
                   key={theme.id}
-                  onClick={() => saveTheme(theme.id)}
+                  onClick={() => setBookingTheme(theme.id)}
                   className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl border-2 transition-all ${
                     active ? "border-slate-700 bg-slate-50" : "border-transparent hover:border-slate-200"
                   }`}
@@ -316,13 +315,22 @@ export default function BusinessProfilePage() {
             })}
           </div>
 
-          <div className="flex items-center gap-2 mt-4 pt-4 border-t border-slate-100">
-            <div className="w-3.5 h-3.5 rounded-full shrink-0" style={{ backgroundColor: selectedTheme.primary }} />
-            <span className="text-xs text-slate-500">
-              Activo: <span className="font-medium text-slate-700">{selectedTheme.name}</span>
-            </span>
-            <div className="ml-auto">
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
+            <div className="flex items-center gap-2">
+              <div className="w-3.5 h-3.5 rounded-full shrink-0" style={{ backgroundColor: selectedTheme.primary }} />
+              <span className="text-xs text-slate-500">
+                Seleccionado: <span className="font-medium text-slate-700">{selectedTheme.name}</span>
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
               <SavedBadge show={savedSection === "theme"} />
+              <button
+                onClick={saveTheme}
+                disabled={mutation.isPending}
+                className="px-4 py-2 text-sm font-medium bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50 transition-colors"
+              >
+                {mutation.isPending ? "Guardando..." : "Guardar"}
+              </button>
             </div>
           </div>
         </Section>

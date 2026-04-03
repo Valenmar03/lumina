@@ -689,7 +689,7 @@ export default function BookingPage() {
                         className={`rounded-xl py-3 text-base font-semibold transition-colors cursor-pointer ${
                           selectedSlot?.startAt === slot.startAt
                             ? "bg-teal-600 text-white"
-                            : "bg-white border border-slate-200 text-slate-700 hover:border-teal-400"
+                            : "bg-white border border-slate-200 text-slate-700 hover:border-teal-400 hover:bg-teal-50"
                         }`}
                       >
                         {slot.label}

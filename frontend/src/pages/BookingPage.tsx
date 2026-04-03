@@ -36,6 +36,7 @@ const THEME_COLORS: Record<string, ThemeColors | null> = {
   ocean:        { primary: "#0284c7", primaryDark: "#0369a1", primaryLight: "#f0f9ff", ring: "#e0f2fe", connector: "#38bdf8", todayText: "#0ea5e9" },
   slate:        { primary: "#475569", primaryDark: "#334155", primaryLight: "#f8fafc", ring: "#e2e8f0", connector: "#94a3b8", todayText: "#64748b" },
   "desert-sand": { primary: "#bf7450", primaryDark: "#b16145", primaryLight: "#faf6f2", ring: "#f4eae0", connector: "#dab497", todayText: "#ca8f6d" },
+  "bay-of-many": { primary: "#2b68e5", primaryDark: "#2354d2", primaryLight: "#f0f6fe", ring: "#dcebfd", connector: "#96c7fa", todayText: "#65a8f5" },
 };
 
 function buildThemeCSS(c: ThemeColors): string {

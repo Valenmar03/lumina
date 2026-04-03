@@ -33,8 +33,9 @@ const THEME_COLORS: Record<string, ThemeColors | null> = {
   rose:   { primary: "#e11d48", primaryDark: "#be123c", primaryLight: "#fff1f2", ring: "#fce7f3", connector: "#fb7185", todayText: "#f43f5e" },
   violet: { primary: "#7c3aed", primaryDark: "#6d28d9", primaryLight: "#f5f3ff", ring: "#ede9fe", connector: "#a78bfa", todayText: "#8b5cf6" },
   amber:  { primary: "#d97706", primaryDark: "#b45309", primaryLight: "#fffbeb", ring: "#fef3c7", connector: "#fcd34d", todayText: "#f59e0b" },
-  ocean:  { primary: "#0284c7", primaryDark: "#0369a1", primaryLight: "#f0f9ff", ring: "#e0f2fe", connector: "#38bdf8", todayText: "#0ea5e9" },
-  slate:  { primary: "#475569", primaryDark: "#334155", primaryLight: "#f8fafc", ring: "#e2e8f0", connector: "#94a3b8", todayText: "#64748b" },
+  ocean:        { primary: "#0284c7", primaryDark: "#0369a1", primaryLight: "#f0f9ff", ring: "#e0f2fe", connector: "#38bdf8", todayText: "#0ea5e9" },
+  slate:        { primary: "#475569", primaryDark: "#334155", primaryLight: "#f8fafc", ring: "#e2e8f0", connector: "#94a3b8", todayText: "#64748b" },
+  "desert-sand": { primary: "#bf7450", primaryDark: "#b16145", primaryLight: "#faf6f2", ring: "#f4eae0", connector: "#dab497", todayText: "#ca8f6d" },
 };
 
 function buildThemeCSS(c: ThemeColors): string {

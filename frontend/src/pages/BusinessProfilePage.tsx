@@ -11,16 +11,17 @@ type BookingTheme = {
   id: string;
   name: string;
   primary: string;
-  swatch: string;
+  color: string; // hex for swatch
 };
 
 const BOOKING_THEMES: BookingTheme[] = [
-  { id: "default", name: "Verde azulado", primary: "#0d9488", swatch: "bg-teal-500" },
-  { id: "rose",    name: "Rosa",          primary: "#e11d48", swatch: "bg-rose-500" },
-  { id: "violet",  name: "Violeta",       primary: "#7c3aed", swatch: "bg-violet-600" },
-  { id: "amber",   name: "Ámbar",         primary: "#d97706", swatch: "bg-amber-500" },
-  { id: "ocean",   name: "Océano",        primary: "#0284c7", swatch: "bg-sky-500" },
-  { id: "slate",   name: "Gris neutro",   primary: "#475569", swatch: "bg-slate-500" },
+  { id: "default",      name: "Verde azulado", primary: "#0d9488", color: "#14b8a6" },
+  { id: "rose",         name: "Rosa",          primary: "#e11d48", color: "#f43f5e" },
+  { id: "violet",       name: "Violeta",       primary: "#7c3aed", color: "#8b5cf6" },
+  { id: "amber",        name: "Ámbar",         primary: "#d97706", color: "#f59e0b" },
+  { id: "ocean",        name: "Océano",        primary: "#0284c7", color: "#0ea5e9" },
+  { id: "slate",        name: "Gris neutro",   primary: "#475569", color: "#64748b" },
+  { id: "desert-sand",  name: "Desert Sand",   primary: "#bf7450", color: "#ca8f6d" },
 ];
 
 // ─── Section wrapper ──────────────────────────────────────────────────────────
@@ -295,9 +296,8 @@ export default function BusinessProfilePage() {
                   }`}
                 >
                   <div
-                    className={`w-9 h-9 rounded-full ${theme.swatch} ${
-                      active ? "ring-2 ring-offset-2 ring-slate-400" : ""
-                    }`}
+                    className={`w-9 h-9 rounded-full ${active ? "ring-2 ring-offset-2 ring-slate-400" : ""}`}
+                    style={{ backgroundColor: theme.color }}
                   />
                   <span className="text-[10px] text-slate-600 font-medium text-center leading-tight">
                     {theme.name}

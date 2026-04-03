@@ -25,6 +25,7 @@ export const businessService = {
       address?: string | null;
       whatsappPhone?: string | null;
       bookingTheme?: string | null;
+      tagline?: string | null;
     }
   ) {
     const update: Record<string, unknown> = {};
@@ -58,6 +59,7 @@ export const businessService = {
     if (data.address !== undefined) update.address = data.address ?? null;
     if (data.whatsappPhone !== undefined) update.whatsappPhone = data.whatsappPhone ?? null;
     if (data.bookingTheme !== undefined) update.bookingTheme = data.bookingTheme ?? "default";
+    if (data.tagline !== undefined) update.tagline = data.tagline ?? null;
 
     return prisma.business.update({ where: { id: businessId }, data: update });
   },

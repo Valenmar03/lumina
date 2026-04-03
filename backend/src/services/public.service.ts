@@ -30,6 +30,7 @@ async function getBusinessBySlug(slug: string) {
       logoUrl: true,
       whatsappPhone: true,
       bookingTheme: true,
+      tagline: true,
     },
   });
   if (!business) throw notFound("Business not found");

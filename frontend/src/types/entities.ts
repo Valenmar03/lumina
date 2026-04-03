@@ -48,6 +48,7 @@ export type Business = {
   logoUrl?: string | null;
   whatsappPhone?: string | null;
   bookingTheme?: string | null;
+  tagline?: string | null;
 };
 
 export type BusinessUnavailability = {

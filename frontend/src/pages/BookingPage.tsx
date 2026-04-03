@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { format, addDays, startOfToday, isToday } from "date-fns";
 import { es } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Clock, Check, Loader2, CreditCard, MapPin, MessageCircle, CalendarPlus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, Check, Loader2, CreditCard, MessageCircle, CalendarPlus } from "lucide-react";
 import PhoneInput from "../components/ui/PhoneInput";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -15,6 +15,7 @@ type BusinessInfo = {
   logoUrl?: string | null;
   whatsappPhone?: string | null;
   bookingTheme?: string | null;
+  tagline?: string | null;
 };
 type Professional = { id: string; name: string; color: string };
 type Slot = { startAt: string; endAt: string; label: string };
@@ -431,10 +432,11 @@ export default function BookingPage() {
 
       {/* ── STEP: Landing ── */}
       {step === "landing" && (
-        <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
-          <div className="w-full max-w-sm flex flex-col items-center gap-6">
-            {/* Logo / initial */}
-            <div className="w-20 h-20 rounded-2xl bg-teal-600 flex items-center justify-center overflow-hidden shadow-md">
+        <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 bg-slate-50">
+          <div className="w-full max-w-xs flex flex-col items-center gap-5">
+
+            {/* Logo */}
+            <div className="w-20 h-20 rounded-2xl bg-teal-600 flex items-center justify-center overflow-hidden shadow-sm">
               {business?.logoUrl ? (
                 <img src={business.logoUrl} alt={business.name} className="w-full h-full object-contain p-1" />
               ) : (
@@ -445,45 +447,72 @@ export default function BookingPage() {
             </div>
 
             {/* Name + tagline */}
-            <div className="text-center">
-              <h1 className="text-2xl font-bold text-slate-800">{business?.name}</h1>
-              <p className="text-slate-500 text-sm mt-1">Reservá tu turno online</p>
+            <div className="text-center space-y-1.5">
+              <h1 className="text-2xl font-bold text-slate-900">{business?.name}</h1>
+              {business?.tagline && (
+                <p className="text-slate-500 text-sm leading-relaxed">{business.tagline}</p>
+              )}
             </div>
 
-            {/* Action buttons */}
-            <div className="w-full flex flex-col gap-3 mt-2">
+            {/* Badges */}
+            <div className="flex items-center gap-2.5 text-xs text-slate-400">
+              <span className="flex items-center gap-1"><CalendarPlus className="w-3.5 h-3.5" /> Online</span>
+              <span>·</span>
+              <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> Rápido</span>
+              <span>·</span>
+              <span className="flex items-center gap-1"><Check className="w-3.5 h-3.5" /> Fácil</span>
+            </div>
+
+            {/* Primary CTA */}
+            <button
+              onClick={() => setStep("service")}
+              className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-full py-4 text-sm transition-colors"
+            >
+              Reservar turno
+            </button>
+
+            {/* Secondary buttons */}
+            <div className="grid grid-cols-2 gap-3 w-full">
               <button
                 onClick={() => setStep("service")}
-                className="w-full flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl py-3.5 transition-colors text-sm"
+                className="flex items-center justify-center border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium rounded-2xl py-3 transition-colors text-sm"
               >
-                <CalendarPlus className="w-4.5 h-4.5" />
-                Reservar un turno
+                Nuestros servicios
               </button>
 
-              {business?.whatsappPhone && (
-                <a
-                  href={`https://wa.me/${business.whatsappPhone}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium rounded-xl py-3 transition-colors text-sm"
-                >
-                  <MessageCircle className="w-4 h-4 text-emerald-500" />
-                  Hablar por WhatsApp
-                </a>
-              )}
-
-              {business?.address && (
+              {business?.address ? (
                 <a
                   href={`https://maps.google.com/?q=${encodeURIComponent(business.address)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium rounded-xl py-3 transition-colors text-sm"
+                  className="flex items-center justify-center border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium rounded-2xl py-3 transition-colors text-sm"
                 >
-                  <MapPin className="w-4 h-4 text-rose-500" />
-                  Cómo llegar
+                  Ubicación
                 </a>
-              )}
+              ) : business?.whatsappPhone ? (
+                <a
+                  href={`https://wa.me/${business.whatsappPhone}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium rounded-2xl py-3 transition-colors text-sm"
+                >
+                  WhatsApp
+                </a>
+              ) : null}
             </div>
+
+            {/* WhatsApp extra (solo si tiene dirección Y whatsapp) */}
+            {business?.address && business?.whatsappPhone && (
+              <a
+                href={`https://wa.me/${business.whatsappPhone}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium rounded-2xl py-3 transition-colors text-sm"
+              >
+                <MessageCircle className="w-4 h-4 text-emerald-500" />
+                WhatsApp
+              </a>
+            )}
           </div>
 
           <footer className="flex flex-col items-center gap-2 pt-12">

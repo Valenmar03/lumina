@@ -75,6 +75,7 @@ export const updateBusinessBody = z.object({
   address: z.string().trim().max(200).optional().nullable(),
   whatsappPhone: z.string().trim().max(30).optional().nullable(),
   bookingTheme: z.string().trim().max(30).optional().nullable(),
+  tagline: z.string().trim().max(120).optional().nullable(),
 });
 
 // ─── Services ─────────────────────────────────────────────────────────────────

@@ -62,6 +62,7 @@ model Business {
   logoUrl              String?
   whatsappPhone        String?
   bookingTheme         String?            @default("default")
+  tagline              String?
   createdAt          DateTime           @default(now())
 
   users         User[]

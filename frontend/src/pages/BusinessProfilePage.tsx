@@ -156,6 +156,7 @@ export default function BusinessProfilePage() {
 
   const [address, setAddress] = useState(business?.address ?? "");
   const [whatsappPhone, setWhatsappPhone] = useState(business?.whatsappPhone ?? "");
+  const [tagline, setTagline] = useState(business?.tagline ?? "");
   const [bookingTheme, setBookingTheme] = useState(business?.bookingTheme ?? "default");
   const [savedSection, setSavedSection] = useState<string | null>(null);
 
@@ -164,6 +165,7 @@ export default function BusinessProfilePage() {
   if (business && !initialized) {
     setAddress(business.address ?? "");
     setWhatsappPhone(business.whatsappPhone ?? "");
+    setTagline(business.tagline ?? "");
     setBookingTheme(business.bookingTheme ?? "default");
     setInitialized(true);
   }
@@ -182,7 +184,7 @@ export default function BusinessProfilePage() {
 
   function saveContact() {
     mutation.mutate(
-      { address: address || null, whatsappPhone: whatsappPhone || null },
+      { address: address || null, whatsappPhone: whatsappPhone || null, tagline: tagline || null },
       { onSuccess: () => showSaved("contact") }
     );
   }
@@ -229,6 +231,19 @@ export default function BusinessProfilePage() {
         {/* Contacto */}
         <Section title="Contacto y ubicación" icon={MapPin}>
           <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">Descripción corta</label>
+              <input
+                type="text"
+                value={tagline}
+                onChange={(e) => setTagline(e.target.value)}
+                placeholder="Ej: Tu espacio de confianza para un corte perfecto"
+                maxLength={120}
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400"
+              />
+              <p className="text-[11px] text-slate-400 mt-1">Se muestra debajo del nombre en tu página de reservas.</p>
+            </div>
+
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1.5">Dirección</label>
               <AddressAutocomplete

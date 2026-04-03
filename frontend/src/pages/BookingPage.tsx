@@ -681,12 +681,12 @@ export default function BookingPage() {
                     No hay turnos disponibles para este día.
                   </p>
                 ) : (
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-3 gap-2.5">
                     {slots.map((slot) => (
                       <button
                         key={slot.startAt}
                         onClick={() => setSelectedSlot(slot)}
-                        className={`rounded-lg py-2 text-sm font-medium transition-colors ${
+                        className={`rounded-xl py-3 text-base font-semibold transition-colors ${
                           selectedSlot?.startAt === slot.startAt
                             ? "bg-teal-600 text-white"
                             : "bg-white border border-slate-200 text-slate-700 hover:border-teal-400"

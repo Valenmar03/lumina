@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useBusiness } from "../hooks/useBusiness";
 import { updateBusiness, uploadBusinessLogo } from "../services/business.api";
 import { Upload, Check, Globe, MapPin, MessageCircle, Palette, Building2, Loader2 } from "lucide-react";
+import AddressAutocomplete from "../components/ui/AddressAutocomplete";
 
 // ─── Booking themes ──────────────────────────────────────────────────────────
 
@@ -221,12 +222,10 @@ export default function BusinessProfilePage() {
             <label className="block text-xs font-medium text-slate-600 mb-1.5">
               Dirección
             </label>
-            <input
-              type="text"
+            <AddressAutocomplete
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="Ej: Av. Corrientes 1234, Buenos Aires"
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400"
+              onChange={setAddress}
+              placeholder="Buscá la dirección del negocio..."
             />
             <p className="text-[11px] text-slate-400 mt-1">
               Se muestra como botón de dirección en tu página de reservas.

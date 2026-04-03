@@ -509,6 +509,7 @@ export default function BookingPage() {
 
       {/* Content */}
       {step !== "landing" && (
+      <>
       <div className="max-w-lg mx-auto px-4 py-6">
         <StepBar current={step} showProfessional={showProfessionalStep} />
 
@@ -792,6 +793,7 @@ export default function BookingPage() {
           </a>
         </div>
       </footer>
+      </>
       )}
     </div>
   );

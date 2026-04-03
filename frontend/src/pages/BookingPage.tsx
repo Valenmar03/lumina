@@ -655,9 +655,24 @@ export default function BookingPage() {
         )}
       </div>
 
-      <footer className="flex items-center justify-center gap-1.5 py-6">
-        <img src="/logo.png" alt="Caleio" className="w-4 h-4 object-contain opacity-40" />
-        <span className="text-xs text-slate-300">Powered by Caleio</span>
+      <footer className="flex flex-col items-center gap-2 py-6">
+        <div className="flex items-center gap-1.5">
+          <img src="/logo.png" alt="Caleio" className="w-4 h-4 object-contain opacity-40" />
+          <span className="text-xs text-slate-300">Powered by Caleio</span>
+        </div>
+        <div className="flex items-center gap-3 text-xs text-slate-300">
+          <a href="/terminos" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-slate-400">
+            Términos
+          </a>
+          <span>·</span>
+          <a href="/privacidad" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-slate-400">
+            Privacidad
+          </a>
+          <span>·</span>
+          <a href="/cookies" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-slate-400">
+            Cookies
+          </a>
+        </div>
       </footer>
     </div>
   );

@@ -71,6 +71,7 @@ export const updateBusinessBody = z.object({
   waReminderHours: z.number().int().min(1).max(168).optional().nullable(),
   emailNotificationsEnabled: z.boolean().optional(),
   emailReminderHours: z.number().int().min(1).max(168).optional().nullable(),
+  onboardingCompleted: z.boolean().optional(),
 });
 
 // ─── Services ─────────────────────────────────────────────────────────────────

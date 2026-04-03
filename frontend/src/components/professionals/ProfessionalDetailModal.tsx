@@ -4,6 +4,7 @@ import { format, parseISO } from "date-fns";
 
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
+import Checkbox from "../ui/Checkbox";
 import CustomDatePicker from "../ui/CustomDatePicker";
 import CustomTimePicker from "../ui/CustomTimePicker";
 import { useProfessionalServices, useUpdateProfessionalServices } from "../../hooks/useProfessionalServices";
@@ -568,15 +569,7 @@ export default function ProfessionalDetailModal({
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          checked={enabled}
-                          onChange={() => toggleDay(day)}
-                          className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
-                        />
-                        <span className="text-sm font-medium text-slate-800 min-w-24">
-                          {label}
-                        </span>
+                        <Checkbox checked={enabled} onChange={() => toggleDay(day)} label={label} className="min-w-24" />
                       </div>
 
                       <div className="flex-1 space-y-2">

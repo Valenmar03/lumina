@@ -56,7 +56,8 @@ model Business {
   lsCustomerId       String?            @unique
   lsSubscriptionId   String?            @unique
   trialEndsAt        DateTime?
-  billingExempt      Boolean            @default(false)
+  billingExempt         Boolean            @default(false)
+  onboardingCompleted   Boolean            @default(false)
   createdAt          DateTime           @default(now())
 
   users         User[]

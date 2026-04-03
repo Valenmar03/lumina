@@ -16,6 +16,10 @@ import BookingPage from "../pages/BookingPage.tsx";
 import BookingPaymentSuccessPage from "../pages/BookingPaymentSuccessPage.tsx";
 import BookingPaymentFailurePage from "../pages/BookingPaymentFailurePage.tsx";
 import BookingPaymentPendingPage from "../pages/BookingPaymentPendingPage.tsx";
+import OnboardingPage from "../pages/OnboardingPage.tsx";
+import PrivacyPolicyPage from "../pages/PrivacyPolicyPage.tsx";
+import TermsPage from "../pages/TermsPage.tsx";
+import CookiePolicyPage from "../pages/CookiePolicyPage.tsx";
 import NotFoundPage from "../pages/NotFoundPage.tsx";
 import { useAuth } from "../hooks/useAuth.ts";
 
@@ -84,6 +88,23 @@ export const router = createBrowserRouter([
   {
     path: "/reservar/:slug/pago-pendiente",
     element: <BookingPaymentPendingPage />,
+  },
+  {
+    path: "/onboarding",
+    element: <ProtectedRoute />,
+    children: [{ index: true, element: <OnboardingPage /> }],
+  },
+  {
+    path: "/privacidad",
+    element: <PrivacyPolicyPage />,
+  },
+  {
+    path: "/terminos",
+    element: <TermsPage />,
+  },
+  {
+    path: "/cookies",
+    element: <CookiePolicyPage />,
   },
   {
     path: "*",

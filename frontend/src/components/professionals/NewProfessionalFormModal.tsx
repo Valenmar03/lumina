@@ -3,6 +3,7 @@ import { Clock3, Plus, User2, X } from "lucide-react";
 
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
+import Checkbox from "../ui/Checkbox";
 import { useServices } from "../../hooks/useServices";
 import { useCreateProfessional } from "../../hooks/useProfessionals";
 import { useUpdateProfessionalServices } from "../../hooks/useProfessionalServices";
@@ -468,15 +469,7 @@ export default function NewProfessionalFormModal({
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        checked={enabled}
-                        onChange={() => toggleDay(day)}
-                        className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
-                      />
-                      <span className="text-sm font-medium text-slate-800 min-w-24">
-                        {label}
-                      </span>
+                      <Checkbox checked={enabled} onChange={() => toggleDay(day)} label={label} className="min-w-24" />
                     </div>
 
                     <div className="flex-1 space-y-2">

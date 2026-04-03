@@ -21,6 +21,7 @@ export const businessService = {
       waReminderHours?: number | null;
       emailNotificationsEnabled?: boolean;
       emailReminderHours?: number | null;
+      onboardingCompleted?: boolean;
     }
   ) {
     const update: Record<string, unknown> = {};
@@ -50,6 +51,7 @@ export const businessService = {
     if (data.waReminderHours !== undefined) update.waReminderHours = data.waReminderHours ?? null;
     if (data.emailNotificationsEnabled !== undefined) update.emailNotificationsEnabled = data.emailNotificationsEnabled;
     if (data.emailReminderHours !== undefined) update.emailReminderHours = data.emailReminderHours ?? null;
+    if (data.onboardingCompleted !== undefined) update.onboardingCompleted = data.onboardingCompleted;
 
     return prisma.business.update({ where: { id: businessId }, data: update });
   },

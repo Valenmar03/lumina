@@ -43,6 +43,7 @@ export type Business = {
   lsSubscriptionId?: string | null;
   trialEndsAt?: string | null;
   billingExempt?: boolean;
+  onboardingCompleted?: boolean;
 };
 
 export type BusinessUnavailability = {

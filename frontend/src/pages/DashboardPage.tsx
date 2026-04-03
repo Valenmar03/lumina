@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { format, isAfter, parseISO } from "date-fns";
 import {
   CalendarDays,
@@ -7,6 +8,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 
+import { useBusiness } from "../hooks/useBusiness";
 import SectionCard from "../components/dashboard/SectionCard";
 import StatCard from "../components/dashboard/StatCard";
 import { useProfessionals } from "../hooks/useProfessionals";
@@ -52,7 +54,15 @@ function formatCurrency(value: number) {
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const isPro = user?.role === "PRO";
+
+  const { data: businessData } = useBusiness();
+  useEffect(() => {
+    if (businessData && businessData.business.onboardingCompleted === false) {
+      navigate("/onboarding", { replace: true });
+    }
+  }, [businessData, navigate]);
 
   const [selectedDate, setSelectedDate] = useState(() =>
     format(new Date(), "yyyy-MM-dd")

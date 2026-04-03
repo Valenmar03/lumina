@@ -42,7 +42,8 @@ const THEME_COLORS: Record<string, ThemeColors | null> = {
   "wisteria":    { primary: "#966297", primaryDark: "#7c4f7c", primaryLight: "#fbf8fb", ring: "#f6f0f7", connector: "#dfc7e0", todayText: "#a86eaa" },
   "sea-nymph":   { primary: "#3d645d", primaryDark: "#34514c", primaryLight: "#f5f8f7", ring: "#ddeae6", connector: "#90b8ae", todayText: "#74a096" },
   "hopbush":     { primary: "#ac568a", primaryDark: "#934371", primaryLight: "#faf5f9", ring: "#f7ecf4", connector: "#e4bdd8", todayText: "#ba639c" },
-  "pesto":       { primary: "#7c7b49", primaryDark: "#5f5d3a", primaryLight: "#f6f6f0", ring: "#e9eada", connector: "#bcbe8f", todayText: "#a7a86d" },
+  "pesto":        { primary: "#7c7b49", primaryDark: "#5f5d3a", primaryLight: "#f6f6f0", ring: "#e9eada", connector: "#bcbe8f", todayText: "#a7a86d" },
+  "picton-blue":  { primary: "#2671a3", primaryDark: "#205a84", primaryLight: "#f3f8fc", ring: "#e6f0f8", connector: "#95c6e4", todayText: "#6db1d9" },
 };
 
 function buildThemeCSS(c: ThemeColors): string {

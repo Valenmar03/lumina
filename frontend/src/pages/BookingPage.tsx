@@ -547,7 +547,7 @@ export default function BookingPage() {
       {/* Content */}
       {step !== "landing" && (
       <>
-      <div className="max-w-lg mx-auto px-4 py-6">
+      <div className="max-w-lg mx-auto px-4 pt-6 pb-32">
         <StepBar current={step} showProfessional={showProfessionalStep} />
 
         {/* ── STEP: Service ── */}
@@ -602,7 +602,7 @@ export default function BookingPage() {
                       {/* Price + check */}
                       <div className="flex flex-col items-end gap-2 shrink-0">
                         {formatPrice(svc.basePrice) && (
-                          <span className="text-base font-bold text-slate-800">{formatPrice(svc.basePrice)}</span>
+                          <span className="text-lg font-bold text-slate-700">{formatPrice(svc.basePrice)}</span>
                         )}
                         {active && (
                           <div className="w-5 h-5 rounded-full bg-teal-600 flex items-center justify-center">
@@ -770,86 +770,70 @@ export default function BookingPage() {
               {clientEmail && <Row label="Email" value={clientEmail} />}
             </div>
 
-            {submitError && (
-              <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-3">
-                {submitError}
-              </p>
-            )}
-
-            <button
-              onClick={handleConfirm}
-              disabled={submitting}
-              className="w-full bg-teal-600 hover:bg-teal-700 disabled:opacity-60 text-white font-semibold rounded-xl py-3 flex items-center justify-center gap-2 transition-colors"
-            >
-              {submitting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : depositAmount !== null ? (
-                <CreditCard className="w-4 h-4" />
-              ) : (
-                <Check className="w-4 h-4" />
-              )}
-              {submitting
-                ? "Confirmando..."
-                : depositAmount !== null
-                ? `Pagar seña ${formatPrice(depositAmount)}`
-                : "Confirmar turno"}
-            </button>
           </StepWrapper>
         )}
 
-        {/* Navigation */}
-        {step !== "confirm" && (
-          <div className="flex items-center justify-between mt-6">
-            <button
-              onClick={goBack}
-              disabled={false}
-              className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 disabled:opacity-0 transition-colors"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Atrás
-            </button>
-
-            <button
-              onClick={() => setStep(nextStep[step])}
-              disabled={!canGoNext[step]}
-              className="flex items-center gap-1 text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-40 disabled:pointer-events-none px-5 py-2 rounded-xl transition-colors"
-            >
-              Continuar
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-
-        {step === "confirm" && (
-          <button
-            onClick={goBack}
-            className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mt-4 transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Atrás
-          </button>
-        )}
       </div>
 
-      <footer className="flex flex-col items-center gap-2 py-6">
-        <div className="flex items-center gap-1.5">
-          <img src="/logo.png" alt="Caleio" className="w-4 h-4 object-contain opacity-40" />
-          <span className="text-xs text-slate-300">Powered by Caleio</span>
+      {/* Fixed bottom nav */}
+      <div className="fixed bottom-0 inset-x-0 bg-white border-t border-slate-100 z-10">
+        <div className="max-w-lg mx-auto px-4 py-4 space-y-2">
+          {step === "confirm" && (
+            <>
+              {submitError && (
+                <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+                  {submitError}
+                </p>
+              )}
+              <button
+                onClick={handleConfirm}
+                disabled={submitting}
+                className="w-full bg-teal-600 hover:bg-teal-700 disabled:opacity-60 text-white font-semibold rounded-xl py-3.5 flex items-center justify-center gap-2 transition-colors"
+              >
+                {submitting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : depositAmount !== null ? (
+                  <CreditCard className="w-4 h-4" />
+                ) : (
+                  <Check className="w-4 h-4" />
+                )}
+                {submitting
+                  ? "Confirmando..."
+                  : depositAmount !== null
+                  ? `Pagar seña ${formatPrice(depositAmount)}`
+                  : "Confirmar turno"}
+              </button>
+              <button
+                onClick={goBack}
+                className="flex items-center justify-center gap-1 w-full text-sm text-slate-500 hover:text-slate-700 py-1 transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Atrás
+              </button>
+            </>
+          )}
+
+          {step !== "confirm" && (
+            <div className="flex items-center justify-between">
+              <button
+                onClick={goBack}
+                className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Atrás
+              </button>
+              <button
+                onClick={() => setStep(nextStep[step])}
+                disabled={!canGoNext[step]}
+                className="flex items-center gap-1 text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-40 disabled:pointer-events-none px-5 py-2.5 rounded-xl transition-colors"
+              >
+                Continuar
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
-        <div className="flex items-center gap-3 text-xs text-slate-300">
-          <a href="/terminos" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-slate-400">
-            Términos
-          </a>
-          <span>·</span>
-          <a href="/privacidad" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-slate-400">
-            Privacidad
-          </a>
-          <span>·</span>
-          <a href="/cookies" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-slate-400">
-            Cookies
-          </a>
-        </div>
-      </footer>
+      </div>
       </>
       )}
     </div>

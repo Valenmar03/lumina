@@ -88,7 +88,7 @@ export default function PhoneInput({ value, onChange, required }: Props) {
 
   return (
     <div>
-      <label className="block text-xs font-medium text-slate-600 mb-1">
+      <label className="block text-sm font-medium text-slate-600 mb-1.5">
         Teléfono{required && <span className="text-red-400 ml-0.5">*</span>}
       </label>
       <div ref={ref} className="flex gap-2 relative">
@@ -96,7 +96,7 @@ export default function PhoneInput({ value, onChange, required }: Props) {
         <button
           type="button"
           onClick={() => setOpen((p) => !p)}
-          className="flex items-center gap-1.5 border border-slate-200 rounded-xl px-2.5 py-2.5 bg-white text-sm text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 shrink-0"
+          className="flex items-center gap-1.5 border border-slate-200 rounded-xl px-3 py-3.5 bg-white text-sm text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 shrink-0"
         >
           <country.Flag className="w-5 h-auto rounded-sm" />
           <span className="text-xs text-slate-500">{country.dialCode}</span>
@@ -129,7 +129,7 @@ export default function PhoneInput({ value, onChange, required }: Props) {
           value={displayValue}
           onChange={(e) => handleInput(e.target.value)}
           placeholder={country.mask.replace(/X/g, "0")}
-          className="flex-1 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white"
+          className="flex-1 border border-slate-200 rounded-xl px-4 py-3.5 text-base text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white"
         />
       </div>
     </div>

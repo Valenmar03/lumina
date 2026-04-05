@@ -1,8 +1,8 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useBusiness } from "../hooks/useBusiness";
 import { updateBusiness, uploadBusinessLogo } from "../services/business.api";
-import { Upload, Check, Globe, MapPin, MessageCircle, Palette, Building2, Loader2 } from "lucide-react";
+import { Upload, Check, Globe, MapPin, MessageCircle, Palette, Building2, Loader2, Copy } from "lucide-react";
 import AddressAutocomplete from "../components/ui/AddressAutocomplete";
 
 // ─── Booking themes ──────────────────────────────────────────────────────────
@@ -17,15 +17,38 @@ type BookingTheme = {
 const BOOKING_THEMES: BookingTheme[] = [
   { id: "default",      name: "Caleio", primary: "#0d9488", color: "#14b8a6" },
   { id: "desert-sand",  name: "Desert Sand",   primary: "#bf7450", color: "#ca8f6d" },
-  { id: "bay-of-many",  name: "Bay of Many",   primary: "#2b68e5", color: "#4186f0" },
+  { id: "bay-of-many",  name: "Bay of Many",   primary: "#5b7fc9", color: "#7899d4" },
   { id: "hippie-blue",  name: "Hippie Blue",   primary: "#3d6a7d", color: "#5a97aa" },
-  { id: "carissma",     name: "Carissma",      primary: "#ba486c", color: "#db87a8" },
+  { id: "carissma",     name: "Carissma",      primary: "#c06882", color: "#d48fa4" },
   { id: "wisteria",     name: "Wisteria",      primary: "#966297", color: "#cca5cd" },
   { id: "sea-nymph",    name: "Sea Nymph",     primary: "#3d645d", color: "#74a096" },
   { id: "hopbush",      name: "Hopbush",       primary: "#ac568a", color: "#d294be" },
   { id: "pesto",        name: "Pesto",         primary: "#7c7b49", color: "#a7a86d" },
-  { id: "picton-blue",  name: "Picton Blue",   primary: "#2671a3", color: "#6db1d9" },
+  { id: "picton-blue",  name: "Picton Blue",   primary: "#4a87b8", color: "#6aaad0" },
 ];
+
+// ─── Theme preview with skeleton ─────────────────────────────────────────────
+
+function ThemePreview({ theme, name }: { theme: string; name: string }) {
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    setLoaded(false);
+  }, [theme]);
+
+  return (
+    <div className="mt-4 rounded-xl overflow-hidden border border-slate-200 w-full max-w-80 mx-auto bg-slate-100" style={{ aspectRatio: "9/16" }}>
+      {!loaded && <div className="w-full h-full animate-pulse bg-slate-100" />}
+      <img
+        key={theme}
+        src={`/theme-previews/${theme}.png`}
+        alt={`Vista previa ${name}`}
+        onLoad={() => setLoaded(true)}
+        className={`w-full object-cover object-top transition-opacity duration-200 ${loaded ? "opacity-100" : "opacity-0"}`}
+      />
+    </div>
+  );
+}
 
 // ─── Section wrapper ──────────────────────────────────────────────────────────
 
@@ -37,6 +60,32 @@ function Section({ title, icon: Icon, children }: { title: string; icon: React.E
         <h2 className="text-sm font-semibold text-slate-700">{title}</h2>
       </div>
       {children}
+    </div>
+  );
+}
+
+// ─── Booking URL row ─────────────────────────────────────────────────────────
+
+function BookingUrlRow({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <div className="flex items-center gap-2 bg-white border border-violet-200 rounded-lg px-3 py-2">
+      <p className="text-xs font-mono text-slate-700 break-all flex-1">{url}</p>
+      <button
+        onClick={handleCopy}
+        title="Copiar URL"
+        className="shrink-0 text-violet-500 hover:text-violet-700 transition-colors"
+      >
+        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+      </button>
     </div>
   );
 }
@@ -282,33 +331,30 @@ export default function BusinessProfilePage() {
         </Section>
 
         {/* Link */}
-        <Section title="Link de reservas" icon={Globe}>
-          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5">
-            <span className="text-sm text-slate-600 truncate flex-1">{bookingUrl}</span>
-            <button
-              onClick={() => navigator.clipboard.writeText(bookingUrl)}
-              className="text-xs text-teal-600 font-medium hover:underline shrink-0"
-            >
-              Copiar
-            </button>
+        <div className="bg-violet-50 border border-violet-100 rounded-xl p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <Globe className="w-4 h-4 text-violet-600" />
+            <p className="text-sm font-semibold text-violet-700">Link de reservas</p>
           </div>
-          <p className="text-[11px] text-slate-400 mt-1.5">
-            Compartí este link con tus clientes para que reserven online.
+          <p className="text-xs text-violet-600 mb-2">
+            Compartí este link con tus clientes para que puedan reservar su turno online.
           </p>
-        </Section>
+          <BookingUrlRow url={bookingUrl} />
+        </div>
       </div>
 
       {/* ── Columna derecha (estilo) ── */}
       <div className="lg:col-span-3">
         <Section title="Estilo de reservas" icon={Palette}>
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
+          {/* Selector */}
+          <div className="flex gap-2.5 overflow-x-auto pb-1 -mx-1 px-1">
             {BOOKING_THEMES.map((theme) => {
               const active = bookingTheme === theme.id;
               return (
                 <button
                   key={theme.id}
                   onClick={() => setBookingTheme(theme.id)}
-                  className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl border-2 transition-all ${
+                  className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl border-2 transition-all shrink-0 ${
                     active ? "border-slate-700 bg-slate-50" : "border-transparent hover:border-slate-200"
                   }`}
                 >
@@ -324,6 +370,9 @@ export default function BusinessProfilePage() {
               );
             })}
           </div>
+
+          {/* Preview */}
+          <ThemePreview theme={bookingTheme} name={selectedTheme.name} />
 
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
             <div className="flex items-center gap-2">

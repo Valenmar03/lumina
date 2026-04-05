@@ -32,14 +32,14 @@ type ThemeColors = { primary: string; primaryDark: string; primaryLight: string;
 const THEME_COLORS: Record<string, ThemeColors | null> = {
   default: null,
   "desert-sand": { primary: "#bf7450", primaryDark: "#b16145", primaryLight: "#faf6f2", ring: "#f4eae0", connector: "#dab497", todayText: "#ca8f6d" },
-  "bay-of-many": { primary: "#2b68e5", primaryDark: "#2354d2", primaryLight: "#f0f6fe", ring: "#dcebfd", connector: "#96c7fa", todayText: "#65a8f5" },
+  "bay-of-many": { primary: "#5b7fc9", primaryDark: "#4a6db8", primaryLight: "#f2f5fd", ring: "#dde5f8", connector: "#a3bae8", todayText: "#7899d4" },
   "hippie-blue": { primary: "#3d6a7d", primaryDark: "#375867", primaryLight: "#f2f8f9", ring: "#deecef", connector: "#95bfcb", todayText: "#5a97aa" },
-  "carissma":    { primary: "#ba486c", primaryDark: "#9f3755", primaryLight: "#fbf4f7", ring: "#f8ebf1", connector: "#eab7cc", todayText: "#ce668c" },
+  "carissma":    { primary: "#c06882", primaryDark: "#a8536c", primaryLight: "#fbf4f7", ring: "#f8ebf1", connector: "#eab7cc", todayText: "#ce7a96" },
   "wisteria":    { primary: "#966297", primaryDark: "#7c4f7c", primaryLight: "#fbf8fb", ring: "#f6f0f7", connector: "#dfc7e0", todayText: "#a86eaa" },
   "sea-nymph":   { primary: "#3d645d", primaryDark: "#34514c", primaryLight: "#f5f8f7", ring: "#ddeae6", connector: "#90b8ae", todayText: "#74a096" },
   "hopbush":     { primary: "#ac568a", primaryDark: "#934371", primaryLight: "#faf5f9", ring: "#f7ecf4", connector: "#e4bdd8", todayText: "#ba639c" },
   "pesto":        { primary: "#7c7b49", primaryDark: "#5f5d3a", primaryLight: "#f6f6f0", ring: "#e9eada", connector: "#bcbe8f", todayText: "#a7a86d" },
-  "picton-blue":  { primary: "#2671a3", primaryDark: "#205a84", primaryLight: "#f3f8fc", ring: "#e6f0f8", connector: "#95c6e4", todayText: "#6db1d9" },
+  "picton-blue":  { primary: "#4a87b8", primaryDark: "#3a72a0", primaryLight: "#f3f8fc", ring: "#e0eef6", connector: "#9cc5e0", todayText: "#6aaad0" },
 };
 
 function buildThemeCSS(c: ThemeColors): string {
@@ -54,7 +54,9 @@ function buildThemeCSS(c: ThemeColors): string {
     .booking-themed .text-teal-100 { color: ${c.ring} !important; }
     .booking-themed .text-teal-500 { color: ${c.todayText} !important; }
     .booking-themed .hover\\:border-teal-400:hover { border-color: ${c.connector} !important; }
+    .booking-themed .hover\\:bg-teal-50:hover { background-color: ${c.primaryLight} !important; }
     .booking-themed .ring-teal-100 { --tw-ring-color: ${c.ring} !important; }
+    .booking-themed .focus\\:ring-teal-500:focus { --tw-ring-color: ${c.primary} !important; }
   `;
 }
 
@@ -850,7 +852,7 @@ export default function BookingPage() {
 function StepWrapper({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h2 className="text-lg font-semibold text-slate-800 mb-4">{title}</h2>
+      <h2 className="text-2xl font-semibold text-slate-800 mb-5">{title}</h2>
       {children}
     </div>
   );
@@ -882,7 +884,7 @@ function Field({
 }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-slate-600 mb-1">
+      <label className="block text-sm font-medium text-slate-600 mb-1.5">
         {label}
         {required && <span className="text-red-400 ml-0.5">*</span>}
       </label>
@@ -891,7 +893,7 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white"
+        className="w-full border border-slate-200 rounded-xl px-4 py-3.5 text-base text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white"
       />
     </div>
   );

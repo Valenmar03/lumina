@@ -30,6 +30,8 @@ async function main() {
       timezone: "America/Argentina/Buenos_Aires",
       plan: "STARTER",
       subscriptionStatus: "TRIAL",
+      billingExempt: true,
+      onboardingCompleted: true,
     },
   });
   console.log(`✓ Business: ${business.name}`);
@@ -213,20 +215,33 @@ async function main() {
     add({ businessId: biz, professionalId: marina.id, clientId: clients[6].id, serviceId: pedicura.id, startAt: dt(14, 0, 3), endAt: dt(15, 0, 3), status: "RESERVED", totalPrice: 5500 });
   }
 
-  // ── Semana pasada (historial) ─────────────────────────────────────────────────
-  for (let d = -7; d <= -2; d++) {
+  // ── Historial: últimas 3 semanas ──────────────────────────────────────────────
+  function ci(n: number) { const x = n % 12; return x < 0 ? x + 12 : x; }
+  const methods: ("CASH" | "TRANSFER" | "MERCADOPAGO")[] = ["CASH", "TRANSFER", "MERCADOPAGO", "CASH", "CASH", "TRANSFER"];
+
+  for (let d = -21; d <= -2; d++) {
     if (isWeekend(d)) continue;
-    // Sofía — 3 o 4 turnos por día
-    add({ businessId: biz, professionalId: sofia.id, clientId: clients[d % 12 < 0 ? (d % 12) + 12 : d % 12].id, serviceId: corte.id, startAt: dt(9, 0, d), endAt: dt(9, 30, d), status: "COMPLETED", totalPrice: 5000, finalPaymentMethod: "CASH", finalPaidAt: dt(9, 30, d) });
-    add({ businessId: biz, professionalId: sofia.id, clientId: clients[(d + 1) % 12 < 0 ? (d + 1) % 12 + 12 : (d + 1) % 12].id, serviceId: tintura.id, startAt: dt(10, 0, d), endAt: dt(11, 30, d), status: "COMPLETED", totalPrice: 18000, finalPaymentMethod: "TRANSFER", finalPaidAt: dt(11, 30, d) });
-    add({ businessId: biz, professionalId: sofia.id, clientId: clients[(d + 2) % 12 < 0 ? (d + 2) % 12 + 12 : (d + 2) % 12].id, serviceId: corte.id, startAt: dt(14, 0, d), endAt: dt(14, 30, d), status: "COMPLETED", totalPrice: 5000, finalPaymentMethod: "MERCADOPAGO", finalPaidAt: dt(14, 30, d) });
-    // Lucas — 2 por día
-    add({ businessId: biz, professionalId: lucas.id, clientId: clients[(d + 3) % 12 < 0 ? (d + 3) % 12 + 12 : (d + 3) % 12].id, serviceId: corte.id, startAt: dt(9, 0, d), endAt: dt(9, 30, d), status: "COMPLETED", totalPrice: 5000, finalPaymentMethod: "CASH", finalPaidAt: dt(9, 30, d) });
-    add({ businessId: biz, professionalId: lucas.id, clientId: clients[(d + 4) % 12 < 0 ? (d + 4) % 12 + 12 : (d + 4) % 12].id, serviceId: corte.id, startAt: dt(11, 0, d), endAt: dt(11, 30, d), status: d % 3 === 0 ? "NO_SHOW" : "COMPLETED", totalPrice: 5000, ...(d % 3 !== 0 ? { finalPaymentMethod: "CASH" as const, finalPaidAt: dt(11, 30, d) } : {}) });
-    // Marina — 3 por día
-    add({ businessId: biz, professionalId: marina.id, clientId: clients[(d + 5) % 12 < 0 ? (d + 5) % 12 + 12 : (d + 5) % 12].id, serviceId: manicura.id, startAt: dt(9, 0, d), endAt: dt(9, 45, d), status: "COMPLETED", totalPrice: 4000, finalPaymentMethod: "CASH", finalPaidAt: dt(9, 45, d) });
-    add({ businessId: biz, professionalId: marina.id, clientId: clients[(d + 6) % 12 < 0 ? (d + 6) % 12 + 12 : (d + 6) % 12].id, serviceId: pedicura.id, startAt: dt(10, 0, d), endAt: dt(11, 0, d), status: "COMPLETED", totalPrice: 5500, finalPaymentMethod: "TRANSFER", finalPaidAt: dt(11, 0, d) });
-    add({ businessId: biz, professionalId: marina.id, clientId: clients[(d + 7) % 12 < 0 ? (d + 7) % 12 + 12 : (d + 7) % 12].id, serviceId: facial.id, startAt: dt(14, 0, d), endAt: dt(15, 0, d), status: d % 4 === 0 ? "CANCELED" : "COMPLETED", totalPrice: 9000, ...(d % 4 !== 0 ? { finalPaymentMethod: "MERCADOPAGO" as const, finalPaidAt: dt(15, 0, d) } : {}) });
+    const m = (i: number) => methods[Math.abs(d + i) % methods.length];
+
+    // Sofía — 5 turnos por día
+    add({ businessId: biz, professionalId: sofia.id, clientId: clients[ci(d)].id,     serviceId: corte.id,     startAt: dt(9,  0, d), endAt: dt(9,  30, d), status: "COMPLETED", totalPrice: 5000,  finalPaymentMethod: m(0), finalPaidAt: dt(9,  30, d) });
+    add({ businessId: biz, professionalId: sofia.id, clientId: clients[ci(d+1)].id,   serviceId: tintura.id,   startAt: dt(10, 0, d), endAt: dt(11, 30, d), status: "COMPLETED", totalPrice: 18000, finalPaymentMethod: m(1), finalPaidAt: dt(11, 30, d) });
+    add({ businessId: biz, professionalId: sofia.id, clientId: clients[ci(d+2)].id,   serviceId: corte.id,     startAt: dt(12, 0, d), endAt: dt(12, 30, d), status: d % 5 === 0 ? "NO_SHOW" : "COMPLETED", totalPrice: 5000, ...(d % 5 !== 0 ? { finalPaymentMethod: m(2), finalPaidAt: dt(12, 30, d) } : {}) });
+    add({ businessId: biz, professionalId: sofia.id, clientId: clients[ci(d+3)].id,   serviceId: depilacion.id,startAt: dt(14, 0, d), endAt: dt(14, 30, d), status: "COMPLETED", totalPrice: 3500,  finalPaymentMethod: m(3), finalPaidAt: dt(14, 30, d) });
+    add({ businessId: biz, professionalId: sofia.id, clientId: clients[ci(d+4)].id,   serviceId: mechas.id,    startAt: dt(15, 0, d), endAt: dt(17, 0, d),  status: d % 7 === 0 ? "CANCELED" : "COMPLETED", totalPrice: 25000, ...(d % 7 !== 0 ? { finalPaymentMethod: m(4), finalPaidAt: dt(17, 0, d) } : {}) });
+
+    // Lucas — 4 turnos por día
+    add({ businessId: biz, professionalId: lucas.id, clientId: clients[ci(d+5)].id,  serviceId: corte.id,   startAt: dt(9,  0, d), endAt: dt(9,  30, d), status: "COMPLETED", totalPrice: 5000,  finalPaymentMethod: m(1), finalPaidAt: dt(9,  30, d) });
+    add({ businessId: biz, professionalId: lucas.id, clientId: clients[ci(d+6)].id,  serviceId: corte.id,   startAt: dt(10, 0, d), endAt: dt(10, 30, d), status: d % 4 === 0 ? "NO_SHOW" : "COMPLETED", totalPrice: 5000, ...(d % 4 !== 0 ? { finalPaymentMethod: m(2), finalPaidAt: dt(10, 30, d) } : {}) });
+    add({ businessId: biz, professionalId: lucas.id, clientId: clients[ci(d+7)].id,  serviceId: tintura.id, startAt: dt(11, 0, d), endAt: dt(12, 30, d), status: "COMPLETED", totalPrice: 18000, finalPaymentMethod: m(3), finalPaidAt: dt(12, 30, d) });
+    add({ businessId: biz, professionalId: lucas.id, clientId: clients[ci(d+8)].id,  serviceId: corte.id,   startAt: dt(14, 0, d), endAt: dt(14, 30, d), status: "COMPLETED", totalPrice: 5000,  finalPaymentMethod: m(0), finalPaidAt: dt(14, 30, d) });
+
+    // Marina — 5 turnos por día
+    add({ businessId: biz, professionalId: marina.id, clientId: clients[ci(d+9)].id,  serviceId: manicura.id,  startAt: dt(9,  0, d), endAt: dt(9,  45, d), status: "COMPLETED", totalPrice: 4000, finalPaymentMethod: m(2), finalPaidAt: dt(9,  45, d) });
+    add({ businessId: biz, professionalId: marina.id, clientId: clients[ci(d+10)].id, serviceId: pedicura.id,  startAt: dt(10, 0, d), endAt: dt(11, 0, d),  status: "COMPLETED", totalPrice: 5500, finalPaymentMethod: m(3), finalPaidAt: dt(11, 0,  d) });
+    add({ businessId: biz, professionalId: marina.id, clientId: clients[ci(d+11)].id, serviceId: facial.id,    startAt: dt(11,30, d), endAt: dt(12, 30, d), status: d % 6 === 0 ? "CANCELED" : "COMPLETED", totalPrice: 9000, ...(d % 6 !== 0 ? { finalPaymentMethod: m(4), finalPaidAt: dt(12, 30, d) } : {}) });
+    add({ businessId: biz, professionalId: marina.id, clientId: clients[ci(d+1)].id,  serviceId: depilacion.id,startAt: dt(14, 0, d), endAt: dt(14, 30, d), status: "COMPLETED", totalPrice: 3500, finalPaymentMethod: m(1), finalPaidAt: dt(14, 30, d) });
+    add({ businessId: biz, professionalId: marina.id, clientId: clients[ci(d+2)].id,  serviceId: manicura.id,  startAt: dt(15, 0, d), endAt: dt(15, 45, d), status: "COMPLETED", totalPrice: 4000, finalPaymentMethod: m(0), finalPaidAt: dt(15, 45, d) });
   }
 
   await prisma.appointment.createMany({ data: appts });

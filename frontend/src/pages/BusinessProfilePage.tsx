@@ -144,35 +144,33 @@ function LogoUploader({
   };
 
   return (
-    <div className="flex items-start gap-6">
+    <div className="flex items-center gap-4">
       {/* Preview */}
-      <div className="w-20 h-20 rounded-xl border-2 border-slate-200 bg-slate-50 flex items-center justify-center shrink-0 overflow-hidden">
+      <div className="w-32 h-32 rounded-2xl border-2 border-slate-200 bg-slate-50 flex items-center justify-center shrink-0 overflow-hidden">
         {currentUrl ? (
-          <img src={currentUrl} alt="Logo" className="w-full h-full object-contain p-1" />
+          <img src={currentUrl} alt="Logo" className="w-full h-full object-contain p-2" />
         ) : (
-          <Building2 className="w-8 h-8 text-slate-300" />
+          <Building2 className="w-10 h-10 text-slate-300" />
         )}
       </div>
 
       {/* Drop zone */}
       <div
-        className="flex-1 border-2 border-dashed border-slate-200 rounded-xl p-4 text-center cursor-pointer hover:border-slate-300 hover:bg-slate-50 transition-colors"
+        className="flex-1 border-2 border-dashed border-slate-200 rounded-xl px-3 py-3 text-center cursor-pointer hover:border-slate-300 hover:bg-slate-50 transition-colors"
         onClick={() => inputRef.current?.click()}
         onDragOver={(e) => e.preventDefault()}
         onDrop={onDrop}
       >
         {uploading ? (
-          <div className="flex flex-col items-center gap-2 py-1">
-            <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
+          <div className="flex flex-col items-center gap-1.5">
+            <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
             <span className="text-xs text-slate-400">Subiendo...</span>
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-1.5 py-1">
-            <Upload className="w-5 h-5 text-slate-400" />
-            <p className="text-xs text-slate-500 font-medium">
-              Arrastrá o hacé clic para subir
-            </p>
-            <p className="text-[11px] text-slate-400">JPG, PNG, WebP o SVG · Máx. 2 MB</p>
+          <div className="flex flex-col items-center gap-1">
+            <Upload className="w-4 h-4 text-slate-400" />
+            <p className="text-xs text-slate-500 font-medium">Arrastrá o hacé clic</p>
+            <p className="text-[10px] text-slate-400">JPG, PNG, WebP · Máx. 2 MB</p>
           </div>
         )}
         <input

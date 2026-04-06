@@ -51,11 +51,12 @@ export async function getServiceByIdHandler(req: Request, res: Response) {
 export async function createServiceHandler(req: Request, res: Response) {
   try {
     const { businessId } = req.user!;
-    const { name, durationMin, basePrice, active, description, requiresDeposit, depositPercent } = req.body;
+    const { name, icon, durationMin, basePrice, active, description, requiresDeposit, depositPercent } = req.body;
 
     const service = await serviceService.createService({
       businessId,
       name,
+      icon: icon ?? "Scissors",
       durationMin: Number(durationMin),
       basePrice: Number(basePrice),
       description,
@@ -74,10 +75,11 @@ export async function updateServiceHandler(req: Request, res: Response) {
   try {
     const { businessId } = req.user!;
     const { id } = req.params;
-    const { name, description, durationMin, basePrice, active, requiresDeposit, depositPercent, bookableOnline, allowClientChooseProfessional } = req.body;
+    const { name, icon, description, durationMin, basePrice, active, requiresDeposit, depositPercent, bookableOnline, allowClientChooseProfessional } = req.body;
 
     const service = await serviceService.updateService(String(id), businessId, {
       ...(name !== undefined ? { name } : {}),
+      ...(icon !== undefined ? { icon } : {}),
       ...(description !== undefined ? { description } : {}),
       ...(durationMin !== undefined ? { durationMin: Number(durationMin) } : {}),
       ...(basePrice !== undefined ? { basePrice: Number(basePrice) } : {}),

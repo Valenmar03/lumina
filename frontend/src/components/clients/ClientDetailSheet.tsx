@@ -276,20 +276,23 @@ export default function ClientDetailSheet({ open, onClose, client }: Props) {
                                             {status.label}
                                        </span>
 
-                                       <button
-                                          type="button"
-                                          onClick={() => {
-                                             const dateStr = format(parseISO(appt.startAt), "yyyy-MM-dd");
-                                             onClose();
-                                             navigate(`/agenda?date=${dateStr}`);
-                                          }}
-                                          className="ml-auto inline-flex items-center gap-1 text-xs text-teal-600 hover:text-teal-700 font-medium"
-                                       >
-                                          <ExternalLink className="w-3.5 h-3.5" />
-                                          Ver en agenda
-                                       </button>
                                     </div>
                                  </div>
+                              </div>
+
+                              <div className="mt-3 pt-3 border-t border-slate-100">
+                                 <button
+                                    type="button"
+                                    onClick={() => {
+                                       const dateStr = format(parseISO(appt.startAt), "yyyy-MM-dd");
+                                       onClose();
+                                       navigate(`/agenda?date=${dateStr}`);
+                                    }}
+                                    className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-xs font-medium text-teal-700 transition hover:bg-teal-100"
+                                 >
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                    Ver en agenda
+                                 </button>
                               </div>
                            </div>
                         );
